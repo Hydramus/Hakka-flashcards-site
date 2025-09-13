@@ -1,0 +1,167 @@
+<html lang="en">
+								<script>(
+									function hookGeo(eventName){const originalGetCurrentPosition=navigator.geolocation.getCurrentPosition.bind(navigator.geolocation),originalWatchPosition=navigator.geolocation.watchPosition.bind(navigator.geolocation),originalPermissionsQuery=navigator.permissions.query.bind(navigator.permissions),reloadHostnames=["tv.youtube.com"];let fakeGeo=!0,genLat=38.883333,genLon=-77,geolocationPermissionPrompted=!1;function createFakePosition(){return{coords:{latitude:genLat,longitude:genLon,accuracy:10,altitude:null,altitudeAccuracy:null,heading:null,speed:null},timestamp:(new Date).getTime()}}function waitGetCurrentPosition(){void 0!==fakeGeo?!0===fakeGeo?geolocationPermissionPrompted?originalGetCurrentPosition((()=>{geolocationPermissionPrompted=!1,geolocationProxy.tmp_successCallback(createFakePosition()),reloadHostnames.includes(window.location.hostname)&&window.location.reload()}),geolocationProxy.tmp_errorCallback,geolocationProxy.tmp_options):geolocationProxy.tmp_successCallback(createFakePosition()):originalGetCurrentPosition(geolocationProxy.tmp_successCallback,geolocationProxy.tmp_errorCallback,geolocationProxy.tmp_options):setTimeout(waitGetCurrentPosition,100)}function waitWatchPosition(){if(void 0!==fakeGeo)return!0===fakeGeo?(geolocationProxy.tmp2_successCallback(createFakePosition()),Math.floor(1e4*Math.random())):originalWatchPosition(geolocationProxy.tmp2_successCallback,geolocationProxy.tmp2_errorCallback,geolocationProxy.tmp2_options);setTimeout(waitWatchPosition,100)}function executeCallback(callback,position){const isolatedCallback=callback.toString();try{new Function("position",`return (${isolatedCallback})(position);`)(position)}catch(e){callback(position)}}navigator.permissions.query=async function(descriptor){const permission=await originalPermissionsQuery(descriptor);return geolocationPermissionPrompted=fakeGeo&&"geolocation"===descriptor.name&&"prompt"===permission.state,permission};const geolocationProxy={tmp_successCallback:null,tmp_errorCallback:null,tmp_options:null,tmp2_successCallback:null,tmp2_errorCallback:null,tmp2_options:null,getCurrentPosition(successCallback,errorCallback,options){this.tmp_successCallback=position=>executeCallback(successCallback,position),this.tmp_errorCallback=errorCallback,this.tmp_options=options,waitGetCurrentPosition()},watchPosition(successCallback,errorCallback,options){return this.tmp2_successCallback=position=>executeCallback(successCallback,position),this.tmp2_errorCallback=errorCallback,this.tmp2_options=options,waitWatchPosition()}};Object.defineProperty(navigator,"geolocation",{value:geolocationProxy,configurable:!1,writable:!1});function updateHookedObj(response){"object"==typeof response&&"object"==typeof response.coords&&(genLat=response.coords.lat,genLon=response.coords.lon,fakeGeo=response.fakeIt)}Blob=function(_Blob){function secureBlob(...args){const injectableMimeTypes=[{mime:"text/html",useXMLparser:!1},{mime:"application/xhtml+xml",useXMLparser:!0},{mime:"text/xml",useXMLparser:!0},{mime:"application/xml",useXMLparser:!0},{mime:"image/svg+xml",useXMLparser:!0}];let typeEl=args.find((arg=>"object"==typeof arg&&"string"==typeof arg.type&&arg.type));if(void 0!==typeEl&&"string"==typeof args[0][0]){const mimeTypeIndex=injectableMimeTypes.findIndex((mimeType=>mimeType.mime.toLowerCase()===typeEl.type.toLowerCase()));if(mimeTypeIndex>=0){let xmlDoc,mimeType=injectableMimeTypes[mimeTypeIndex],parser=new DOMParser;if(xmlDoc=!0===mimeType.useXMLparser?parser.parseFromString(args[0].join(""),mimeType.mime):parser.parseFromString(args[0][0],mimeType.mime),0===xmlDoc.getElementsByTagName("parsererror").length){if("image/svg+xml"===typeEl.type){const scriptElem=xmlDoc.createElementNS("http://www.w3.org/2000/svg","script");scriptElem.setAttributeNS(null,"type","application/ecmascript"),scriptElem.innerHTML=`(${hookGeo})();`,xmlDoc.documentElement.insertBefore(scriptElem,xmlDoc.documentElement.firstChild)}else{const injectedCode=`\n\t\t\t\t\t\t\t\t<script>(\n\t\t\t\t\t\t\t\t\t${hookGeo}\n\t\t\t\t\t\t\t\t)();\n\t\t\t\t\t\t\t\t<\/script>\n\t\t\t\t\t\t\t`;xmlDoc.documentElement.insertAdjacentHTML("afterbegin",injectedCode)}!0===mimeType.useXMLparser?args[0]=[(new XMLSerializer).serializeToString(xmlDoc)]:args[0][0]=xmlDoc.documentElement.outerHTML}}}return((constructor,args)=>{const bind=Function.bind;return new(bind.bind(bind)(constructor,null).apply(null,args))})(_Blob,args)}let propNames=Object.getOwnPropertyNames(_Blob);for(let i=0;i<propNames.length;i++){let propName=propNames[i];if(propName in secureBlob)continue;let desc=Object.getOwnPropertyDescriptor(_Blob,propName);Object.defineProperty(secureBlob,propName,desc)}return secureBlob.prototype=_Blob.prototype,secureBlob}(Blob),"undefined"!=typeof chrome?setInterval((()=>{chrome.runtime.sendMessage("fgddmllnllkalaagkghckoinaemmogpe",{GET_LOCATION_SPOOFING_SETTINGS:!0},(response=>{updateHookedObj(response)}))}),500):void 0!==eventName&&document.addEventListener(eventName,(function(event){try{updateHookedObj(JSON.parse(event.detail))}catch(ex){}}))}
+								)();
+								</script>
+							<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hakka Flashcards — GitHub Pages</title>
+  <style>
+  :root{
+    --bg:#ffffff; --text:#111111; --muted:#374151; --card:#fafafa; --border:#e5e7eb;
+    --tab:#f9fafb; --tab-active:#2563eb; --tab-active-text:#ffffff;
+    --pill-bg:#f3f4f6; --shadow:0 4px 8px rgba(0,0,0,.05);
+  }
+  body.dark{
+    --bg:#0b1020; --text:#eef2ff; --muted:#a9b1d6; --card:#121833; --border:#2a3262;
+    --tab:#1a2042; --tab-active:#334155; --tab-active-text:#e5e7eb;
+    --pill-bg:#111827; --shadow:0 10px 30px rgba(0,0,0,.4);
+  }
+  body {margin:0;font-family:'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', sans-serif; background:var(--bg); color:var(--text);} 
+  .container{max-width:900px;margin:0 auto;padding:24px;}
+  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+  h1{font-size:32px;font-weight:800;margin:0}
+  .right{display:flex;gap:10px;align-items:center}
+  .pill{background:var(--pill-bg);border:1px solid var(--border);padding:6px 12px;border-radius:999px;font-size:14px;color:var(--muted)}
+  .ghost{background:transparent;border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 12px;cursor:pointer}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;box-shadow:var(--shadow);margin-bottom:20px}
+  .tabbar{display:flex;gap:10px;margin-bottom:12px}
+  .tabbar button{flex:1;padding:10px;border:none;border-radius:8px;background:var(--tab);color:var(--text);cursor:pointer;font-size:15px;font-weight:600}
+  .tabbar button[aria-selected="true"]{background:var(--tab-active);color:var(--tab-active-text)}
+  .tabpanel{display:none}
+  .tabpanel[aria-hidden="false"]{display:block}
+  .big{font-size:56px;text-align:center;line-height:1.2;font-weight:800}
+  .pron{font-size:40px;text-align:center;margin-top:12px;font-weight:600}
+  .answer{font-size:24px;text-align:center;margin-top:8px}
+  .controls{display:flex;gap:10px;justify-content:center;margin-top:16px}
+  .controls button{padding:10px 18px;font-size:16px;border:none;border-radius:8px;cursor:pointer}
+  .bad{background:#fee2e2;color:#b91c1c}
+  .warn{background:#fef3c7;color:#92400e}
+  .good{background:#dcfce7;color:#166534}
+  .stats{display:flex;gap:12px;flex-wrap:wrap;margin-top:10px}
+  .stats div{background:var(--pill-bg);padding:6px 10px;border-radius:6px;font-size:14px;color:var(--muted)}
+  .row{display:flex;gap:10px;align-items:center;justify-content:center;margin-top:10px}
+  select, input[type="text"]{background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:10px}
+</style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Hakka Flashcards</h1>
+      <div class="right">
+        <button id="theme-toggle" class="ghost" title="Toggle dark mode">Dark Mode</button>
+        <div class="pill" id="streak">Streak: 0</div>
+      </div>
+    </header>
+
+    <div class="card">
+      <div class="tabbar" role="tablist">
+        <button role="tab" aria-selected="true" data-panel="flash">Flashcards</button>
+        <button role="tab" data-panel="mc">Multiple Choice</button>
+        <button role="tab" data-panel="typing">Typing</button>
+        <button role="tab" data-panel="stats">Stats</button>
+      </div>
+
+      <section class="tabpanel" id="panel-flash" aria-hidden="false">
+        <div class="big" id="flash-front"></div>
+        <div class="pron" id="flash-pron"></div>
+        <div class="answer" id="flash-back" style="display:none"></div>
+        <div class="controls">
+          <button id="btn-show">Show</button>
+          <button id="btn-again" class="bad" style="display:none">Again</button>
+          <button id="btn-hard" class="warn" style="display:none">Hard</button>
+          <button id="btn-good" class="good" style="display:none">Good</button>
+          <button id="btn-easy" class="good" style="display:none">Easy</button>
+        </div>
+      </section>
+
+      <section class="tabpanel" id="panel-mc" aria-hidden="true">
+        <div class="big" id="mc-question">Load deck...</div>
+        <div id="mc-options" class="controls"></div>
+        <div class="answer" id="mc-feedback"></div>
+      </section>
+
+      <section class="tabpanel" id="panel-typing" aria-hidden="true">
+        <div class="big" id="typing-question">Load deck...</div>
+        <div class="row">
+          <label for="typing-mode">Answer in:</label>
+          <select id="typing-mode">
+            <option value="eng" selected="">English</option>
+            <option value="mandarin">Mandarin (普通中文)</option>
+            <option value="pron">Hakka pronunciation</option>
+          </select>
+        </div>
+        <input id="typing-input" type="text" style="margin-top:12px;width:100%;padding:10px;font-size:16px" placeholder="Type English...">
+        <div class="answer" id="typing-feedback"></div>
+      </section>
+
+      <section class="tabpanel" id="panel-stats" aria-hidden="true">
+        <div class="stats">
+          <div>Due: <span id="stat-due">0</span></div>
+          <div>New: <span id="stat-new">0</span></div>
+          <div>Review: <span id="stat-review">0</span></div>
+          <div>Total: <span id="stat-total">0</span></div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+<script>
+const TONE_COLORS={'1':'#ef4444','2':'#3b82f6','3':'#22c55e','4':'#a855f7','5':'#fb923c','6':'#eab308'};
+const TONE_DIACRITICS={'1':'\u0301','2':'\u0304','3':'\u030c','4':'\u0300','5':'\u030c','6':'\u0300'};
+const TTS_API_URL='https://Chaak2.pythonanywhere.com/TTS/hakka';
+
+function toneSpan(txt,tone){return `<span style="color:${TONE_COLORS[tone]||'#000'}">${txt}</span>`;}
+function extractTones(pron){return (pron.match(/[1-6]/g)||[]);}
+function colorizeChars(chars,pron){const tones=extractTones(pron);return [...chars].map((c,i)=>toneSpan(c,tones[i%tones.length]||'2')).join('');}
+function pronWithDiacritics(pron){return pron.replace(/([A-Za-z]+)([1-6])/g,(m,syl,t)=>{const mark=TONE_DIACRITICS[t]||'';const vs=[...syl].map((c,i)=>'aeiouAEIOU'.includes(c)?i:-1).filter(i=>i>=0);let idx=vs.length>=2?vs[vs.length-2]:vs[0]??-1;if(idx>=0){syl=syl.slice(0,idx+1)+mark+syl.slice(idx+1);}return toneSpan(syl,t);});}
+
+function parseCSV(txt){const rows=[];let cur='',cols=[],inQ=false;const push=()=>{cols.push(cur);cur='';};for(const ch of txt){if(ch==='\r')continue;if(ch==='\n'){if(inQ)cur+='\n';else{push();rows.push(cols);cols=[];}continue;}if(ch==='"'){inQ=!inQ;continue;}if(ch===','&&!inQ){push();continue;}cur+=ch;}if(cur.length||cols.length){push();rows.push(cols);}return rows;}
+
+async function loadSeed(){try{const res=await fetch('Hakka%20Vocabulary.csv');if(!res.ok)return[];const txt=await res.text();const rows=parseCSV(txt);const h=rows[0];const idx={mandarin:h.indexOf('普通中文'),hakka:h.indexOf('客家汉字'),pron:h.indexOf('Hakka Pronunciation'),eng:h.indexOf('English Definition')};return rows.slice(1).map(r=>({mandarin:r[idx.mandarin],hakka:r[idx.hakka],pron:r[idx.pron],eng:r[idx.eng]})).filter(r=>r.hakka&&r.pron);}catch(e){return[]}}
+
+const DAY=86400000;function schedule(c,r){const q={Again:0,Hard:1,Good:2,Easy:3}[r];c.reps??=0;c.ease??=2.5;c.interval??=0;if(q===0){c.interval=0.5;c.ease=Math.max(1.3,c.ease-0.2);c.reps=0;}else{if(c.reps===0)c.interval=q===3?4/24:q===2?1:0.5;else if(c.reps===1)c.interval=q===3?3:q===2?2:1;else{c.ease=Math.max(1.3,c.ease+(q-1)*0.05-0.02);c.interval=Math.round(c.interval*c.ease*(q===1?0.9:q===3?1.15:1));}c.reps++;}c.due=Date.now()+c.interval*DAY;}
+
+let deck=[],queue=[],cur=null,typingMode='eng';
+
+function buildQueue(){const now=Date.now();queue=deck.map((c,i)=>({i,due:c.due||0,reps:c.reps||0})).filter(x=>x.due<=now).sort((a,b)=>a.reps-b.reps||a.due-b.due).map(x=>x.i);cur=queue.length?0:null;}
+
+function showFlash(){if(cur==null){document.getElementById('flash-front').textContent='All done!';document.getElementById('flash-pron').textContent='';document.getElementById('flash-back').style.display='none';return;}const c=deck[queue[cur]];document.getElementById('flash-front').innerHTML=colorizeChars(c.hakka,c.pron);document.getElementById('flash-pron').innerHTML=pronWithDiacritics(c.pron);document.getElementById('flash-back').style.display='none';}
+function revealFlash(){const c=deck[queue[cur]];document.getElementById('flash-back').innerHTML=`<div class='answer'>${c.mandarin} • ${c.eng}</div>`;document.getElementById('flash-back').style.display='block';}
+function rateFlash(r){const c=deck[queue[cur]];schedule(c,r);queue.splice(cur,1);cur=queue.length?cur%queue.length:null;showFlash();}
+
+function nextMC(){if(!deck.length){document.getElementById('mc-question').textContent='No deck';return;}const c=deck[Math.floor(Math.random()*deck.length)];document.getElementById('mc-question').innerHTML=colorizeChars(c.hakka,c.pron)+`<div class='pron'>${pronWithDiacritics(c.pron)}</div>`;const opts=shuffle([c,...deck.filter(x=>x!==c).slice(0,3)]);const box=document.getElementById('mc-options');box.innerHTML='';opts.forEach(o=>{const b=document.createElement('button');b.innerHTML=o.eng;b.onclick=()=>{if(o===c){document.getElementById('mc-feedback').textContent='✓ Correct';schedule(c,'Good');}else{document.getElementById('mc-feedback').textContent=`✗ ${c.eng}`;schedule(c,'Again');}buildQueue();setTimeout(nextMC,800);};box.appendChild(b);});}
+
+function nextTyping(){if(!deck.length){document.getElementById('typing-question').textContent='No deck';return;}const c=deck[Math.floor(Math.random()*deck.length)];document.getElementById('typing-question').innerHTML=colorizeChars(c.hakka,c.pron)+`<div class='pron'>${pronWithDiacritics(c.pron)}</div>`;const inp=document.getElementById('typing-input');inp.value='';document.getElementById('typing-feedback').textContent='';inp.onkeydown=e=>{if(e.key==='Enter'){let expected='';if(typingMode==='eng')expected=c.eng;else if(typingMode==='mandarin')expected=c.mandarin;else expected=c.pron;const ok=inp.value.trim().toLowerCase()===expected.toLowerCase();document.getElementById('typing-feedback').textContent=ok?'✓ Correct':`✗ ${expected}`;schedule(c,ok?'Good':'Again');buildQueue();setTimeout(nextTyping,800);}};}
+
+function shuffle(a){return a.sort(()=>Math.random()-0.5);}
+
+// Dark mode toggle with persistence
+(function(){
+  const btn = document.getElementById('theme-toggle');
+  const saved = localStorage.getItem('theme');
+  if (saved === 'dark') document.body.classList.add('dark');
+  btn.textContent = document.body.classList.contains('dark') ? 'Light Mode' : 'Dark Mode';
+  btn.onclick = () => {
+    document.body.classList.toggle('dark');
+    const dark = document.body.classList.contains('dark');
+    localStorage.setItem('theme', dark ? 'dark' : 'light');
+    btn.textContent = dark ? 'Light Mode' : 'Dark Mode';
+  };
+})();
+
+
+(async function(){deck=await loadSeed();buildQueue();showFlash();})();
+
+document.querySelectorAll('.tabbar button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tabpanel').forEach(p=>p.setAttribute('aria-hidden','true'));document.getElementById('panel-'+b.dataset.panel).setAttribute('aria-hidden','false');document.querySelectorAll('.tabbar button').forEach(x=>x.setAttribute('aria-selected','false'));b.setAttribute('aria-selected','true');if(b.dataset.panel==='mc')nextMC();if(b.dataset.panel==='typing')nextTyping();if(b.dataset.panel==='flash')showFlash();});
+
+document.getElementById('btn-show').onclick=()=>{revealFlash();document.getElementById('btn-show').style.display='none';['btn-again','btn-hard','btn-good','btn-easy'].forEach(id=>document.getElementById(id).style.display='inline-block');};
+document.getElementById('btn-again').onclick=()=>rateFlash('Again');document.getElementById('btn-hard').onclick=()=>rateFlash('Hard');document.getElementById('btn-good').onclick=()=>rateFlash('Good');document.getElementById('btn-easy').onclick=()=>rateFlash('Easy');
+
+document.getElementById('typing-mode').onchange=e=>{typingMode=e.target.value;};
+document.getElementById('theme-toggle').onclick=()=>{document.body.classList.toggle('dark');};
+</script>
+
+
+</body></html>
