@@ -1,167 +1,345 @@
+<!doctype html>
 <html lang="en">
-								<script>(
-									function hookGeo(eventName){const originalGetCurrentPosition=navigator.geolocation.getCurrentPosition.bind(navigator.geolocation),originalWatchPosition=navigator.geolocation.watchPosition.bind(navigator.geolocation),originalPermissionsQuery=navigator.permissions.query.bind(navigator.permissions),reloadHostnames=["tv.youtube.com"];let fakeGeo=!0,genLat=38.883333,genLon=-77,geolocationPermissionPrompted=!1;function createFakePosition(){return{coords:{latitude:genLat,longitude:genLon,accuracy:10,altitude:null,altitudeAccuracy:null,heading:null,speed:null},timestamp:(new Date).getTime()}}function waitGetCurrentPosition(){void 0!==fakeGeo?!0===fakeGeo?geolocationPermissionPrompted?originalGetCurrentPosition((()=>{geolocationPermissionPrompted=!1,geolocationProxy.tmp_successCallback(createFakePosition()),reloadHostnames.includes(window.location.hostname)&&window.location.reload()}),geolocationProxy.tmp_errorCallback,geolocationProxy.tmp_options):geolocationProxy.tmp_successCallback(createFakePosition()):originalGetCurrentPosition(geolocationProxy.tmp_successCallback,geolocationProxy.tmp_errorCallback,geolocationProxy.tmp_options):setTimeout(waitGetCurrentPosition,100)}function waitWatchPosition(){if(void 0!==fakeGeo)return!0===fakeGeo?(geolocationProxy.tmp2_successCallback(createFakePosition()),Math.floor(1e4*Math.random())):originalWatchPosition(geolocationProxy.tmp2_successCallback,geolocationProxy.tmp2_errorCallback,geolocationProxy.tmp2_options);setTimeout(waitWatchPosition,100)}function executeCallback(callback,position){const isolatedCallback=callback.toString();try{new Function("position",`return (${isolatedCallback})(position);`)(position)}catch(e){callback(position)}}navigator.permissions.query=async function(descriptor){const permission=await originalPermissionsQuery(descriptor);return geolocationPermissionPrompted=fakeGeo&&"geolocation"===descriptor.name&&"prompt"===permission.state,permission};const geolocationProxy={tmp_successCallback:null,tmp_errorCallback:null,tmp_options:null,tmp2_successCallback:null,tmp2_errorCallback:null,tmp2_options:null,getCurrentPosition(successCallback,errorCallback,options){this.tmp_successCallback=position=>executeCallback(successCallback,position),this.tmp_errorCallback=errorCallback,this.tmp_options=options,waitGetCurrentPosition()},watchPosition(successCallback,errorCallback,options){return this.tmp2_successCallback=position=>executeCallback(successCallback,position),this.tmp2_errorCallback=errorCallback,this.tmp2_options=options,waitWatchPosition()}};Object.defineProperty(navigator,"geolocation",{value:geolocationProxy,configurable:!1,writable:!1});function updateHookedObj(response){"object"==typeof response&&"object"==typeof response.coords&&(genLat=response.coords.lat,genLon=response.coords.lon,fakeGeo=response.fakeIt)}Blob=function(_Blob){function secureBlob(...args){const injectableMimeTypes=[{mime:"text/html",useXMLparser:!1},{mime:"application/xhtml+xml",useXMLparser:!0},{mime:"text/xml",useXMLparser:!0},{mime:"application/xml",useXMLparser:!0},{mime:"image/svg+xml",useXMLparser:!0}];let typeEl=args.find((arg=>"object"==typeof arg&&"string"==typeof arg.type&&arg.type));if(void 0!==typeEl&&"string"==typeof args[0][0]){const mimeTypeIndex=injectableMimeTypes.findIndex((mimeType=>mimeType.mime.toLowerCase()===typeEl.type.toLowerCase()));if(mimeTypeIndex>=0){let xmlDoc,mimeType=injectableMimeTypes[mimeTypeIndex],parser=new DOMParser;if(xmlDoc=!0===mimeType.useXMLparser?parser.parseFromString(args[0].join(""),mimeType.mime):parser.parseFromString(args[0][0],mimeType.mime),0===xmlDoc.getElementsByTagName("parsererror").length){if("image/svg+xml"===typeEl.type){const scriptElem=xmlDoc.createElementNS("http://www.w3.org/2000/svg","script");scriptElem.setAttributeNS(null,"type","application/ecmascript"),scriptElem.innerHTML=`(${hookGeo})();`,xmlDoc.documentElement.insertBefore(scriptElem,xmlDoc.documentElement.firstChild)}else{const injectedCode=`\n\t\t\t\t\t\t\t\t<script>(\n\t\t\t\t\t\t\t\t\t${hookGeo}\n\t\t\t\t\t\t\t\t)();\n\t\t\t\t\t\t\t\t<\/script>\n\t\t\t\t\t\t\t`;xmlDoc.documentElement.insertAdjacentHTML("afterbegin",injectedCode)}!0===mimeType.useXMLparser?args[0]=[(new XMLSerializer).serializeToString(xmlDoc)]:args[0][0]=xmlDoc.documentElement.outerHTML}}}return((constructor,args)=>{const bind=Function.bind;return new(bind.bind(bind)(constructor,null).apply(null,args))})(_Blob,args)}let propNames=Object.getOwnPropertyNames(_Blob);for(let i=0;i<propNames.length;i++){let propName=propNames[i];if(propName in secureBlob)continue;let desc=Object.getOwnPropertyDescriptor(_Blob,propName);Object.defineProperty(secureBlob,propName,desc)}return secureBlob.prototype=_Blob.prototype,secureBlob}(Blob),"undefined"!=typeof chrome?setInterval((()=>{chrome.runtime.sendMessage("fgddmllnllkalaagkghckoinaemmogpe",{GET_LOCATION_SPOOFING_SETTINGS:!0},(response=>{updateHookedObj(response)}))}),500):void 0!==eventName&&document.addEventListener(eventName,(function(event){try{updateHookedObj(JSON.parse(event.detail))}catch(ex){}}))}
-								)();
-								</script>
-							<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Hakka Flashcards — GitHub Pages</title>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Fui Yong Hakka — Study</title>
   <style>
-  :root{
-    --bg:#ffffff; --text:#111111; --muted:#374151; --card:#fafafa; --border:#e5e7eb;
-    --tab:#f9fafb; --tab-active:#2563eb; --tab-active-text:#ffffff;
-    --pill-bg:#f3f4f6; --shadow:0 4px 8px rgba(0,0,0,.05);
-  }
-  body.dark{
-    --bg:#0b1020; --text:#eef2ff; --muted:#a9b1d6; --card:#121833; --border:#2a3262;
-    --tab:#1a2042; --tab-active:#334155; --tab-active-text:#e5e7eb;
-    --pill-bg:#111827; --shadow:0 10px 30px rgba(0,0,0,.4);
-  }
-  body {margin:0;font-family:'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', sans-serif; background:var(--bg); color:var(--text);} 
-  .container{max-width:900px;margin:0 auto;padding:24px;}
-  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
-  h1{font-size:32px;font-weight:800;margin:0}
-  .right{display:flex;gap:10px;align-items:center}
-  .pill{background:var(--pill-bg);border:1px solid var(--border);padding:6px 12px;border-radius:999px;font-size:14px;color:var(--muted)}
-  .ghost{background:transparent;border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 12px;cursor:pointer}
-  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;box-shadow:var(--shadow);margin-bottom:20px}
-  .tabbar{display:flex;gap:10px;margin-bottom:12px}
-  .tabbar button{flex:1;padding:10px;border:none;border-radius:8px;background:var(--tab);color:var(--text);cursor:pointer;font-size:15px;font-weight:600}
-  .tabbar button[aria-selected="true"]{background:var(--tab-active);color:var(--tab-active-text)}
-  .tabpanel{display:none}
-  .tabpanel[aria-hidden="false"]{display:block}
-  .big{font-size:56px;text-align:center;line-height:1.2;font-weight:800}
-  .pron{font-size:40px;text-align:center;margin-top:12px;font-weight:600}
-  .answer{font-size:24px;text-align:center;margin-top:8px}
-  .controls{display:flex;gap:10px;justify-content:center;margin-top:16px}
-  .controls button{padding:10px 18px;font-size:16px;border:none;border-radius:8px;cursor:pointer}
-  .bad{background:#fee2e2;color:#b91c1c}
-  .warn{background:#fef3c7;color:#92400e}
-  .good{background:#dcfce7;color:#166534}
-  .stats{display:flex;gap:12px;flex-wrap:wrap;margin-top:10px}
-  .stats div{background:var(--pill-bg);padding:6px 10px;border-radius:6px;font-size:14px;color:var(--muted)}
-  .row{display:flex;gap:10px;align-items:center;justify-content:center;margin-top:10px}
-  select, input[type="text"]{background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:10px}
-</style>
+    :root{
+      --bg:#0f1115; --ink:#e5e7eb; --muted:#94a3b8; --card:#161a22; --line:#263042;
+      --tone1:#ef4444; --tone2:#3b82f6; --tone3:#22c55e; --tone4:#a855f7; --tone5:#fb923c; --tone6:#eab308;
+    }
+    body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;}
+    .container{max-width:1080px;margin:0 auto;padding:24px}
+    header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+    h1{margin:0;font-size:36px;font-weight:800;letter-spacing:.4px}
+    .subtitle{color:var(--muted)}
+    .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .pill{padding:6px 10px;border-radius:999px;background:#0b0f18;border:1px solid var(--line);color:var(--muted);font-size:12px}
+    .btn{background:#141a27;border:1px solid var(--line);color:var(--ink);border-radius:12px;padding:10px 12px;cursor:pointer}
+    .btn.good{border-color:#16a34a}
+    .btn.warn{border-color:#f59e0b}
+    .btn.bad{border-color:#ef4444}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+    .tabbar{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+    .tabbar button{background:#141a27;color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer}
+    .tabbar button[aria-selected="true"]{background:#1a2340}
+    .tabpanel{display:none}
+    .tabpanel[aria-hidden="false"]{display:block}
+    .big{font-size:40px;text-align:center;line-height:1.2}
+    .small{font-size:14px;color:var(--muted)}
+    .mono{font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:12px}
+    .char{font-size:56px; font-weight:800; line-height:1.05; margin-bottom:6px}
+    .label{font-size:32px; font-weight:800; margin:10px 0 2px}
+    .pron{font-size:40px; margin:6px 0 8px}
+    input[type="text"], textarea, select{background:#0b0f18;color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px}
+  </style>
 </head>
 <body>
   <div class="container">
     <header>
-      <h1>Hakka Flashcards</h1>
-      <div class="right">
-        <button id="theme-toggle" class="ghost" title="Toggle dark mode">Dark Mode</button>
-        <div class="pill" id="streak">Streak: 0</div>
+      <div>
+        <h1>Fui Yong Hakka — Study</h1>
+        <div class="subtitle">Local save • CSV default deck • Flashcards / MC / Typing</div>
+      </div>
+      <div class="row">
+        <div class="pill" id="streak-session">Session: 0</div>
+        <div class="pill" id="streak-life">Lifetime: 0</div>
+        <button id="theme-toggle" class="btn" title="Toggle dark mode">Dark Mode</button>
       </div>
     </header>
 
     <div class="card">
-      <div class="tabbar" role="tablist">
-        <button role="tab" aria-selected="true" data-panel="flash">Flashcards</button>
-        <button role="tab" data-panel="mc">Multiple Choice</button>
-        <button role="tab" data-panel="typing">Typing</button>
-        <button role="tab" data-panel="stats">Stats</button>
+      <div class="tabbar" role="tablist" aria-label="Modes">
+        <button role="tab" id="tab-flash" aria-selected="true" data-panel="flash">Flashcards</button>
+        <button role="tab" id="tab-mc" data-panel="mc">Multiple Choice</button>
+        <button role="tab" id="tab-typing" data-panel="typing">Typing</button>
+        <button role="tab" id="tab-stats" data-panel="stats">Stats</button>
+        <button role="tab" id="tab-manage" data-panel="manage">Import/Export</button>
       </div>
 
-      <section class="tabpanel" id="panel-flash" aria-hidden="false">
+      <section class="tabpanel" id="panel-flash" aria-hidden="false" aria-labelledby="tab-flash">
         <div class="big" id="flash-front"></div>
-        <div class="pron" id="flash-pron"></div>
-        <div class="answer" id="flash-back" style="display:none"></div>
-        <div class="controls">
-          <button id="btn-show">Show</button>
-          <button id="btn-again" class="bad" style="display:none">Again</button>
-          <button id="btn-hard" class="warn" style="display:none">Hard</button>
-          <button id="btn-good" class="good" style="display:none">Good</button>
-          <button id="btn-easy" class="good" style="display:none">Easy</button>
+        <div class="big" id="flash-back" style="display:none;margin-top:10px;opacity:.98"></div>
+        <div class="row" style="justify-content:center;margin-top:14px">
+          <button id="btn-show" class="btn">Show</button>
+          <button id="btn-again" class="btn bad" style="display:none">Again</button>
+          <button id="btn-hard" class="btn warn" style="display:none">Hard</button>
+          <button id="btn-good" class="btn" style="display:none">Good</button>
+          <button id="btn-easy" class="btn good" style="display:none">Easy</button>
         </div>
+        <div class="small" style="text-align:center;margin-top:8px"><span id="queue-info">0 due</span></div>
       </section>
 
-      <section class="tabpanel" id="panel-mc" aria-hidden="true">
-        <div class="big" id="mc-question">Load deck...</div>
-        <div id="mc-options" class="controls"></div>
-        <div class="answer" id="mc-feedback"></div>
+      <section class="tabpanel" id="panel-mc" aria-hidden="true" aria-labelledby="tab-mc">
+        <div id="mc-question" class="big"></div>
+        <div id="mc-options" class="row" style="margin-top:16px;justify-content:center;flex-wrap:wrap"></div>
+        <div id="mc-feedback" class="small" style="margin-top:8px;text-align:center"></div>
       </section>
 
-      <section class="tabpanel" id="panel-typing" aria-hidden="true">
-        <div class="big" id="typing-question">Load deck...</div>
-        <div class="row">
-          <label for="typing-mode">Answer in:</label>
+      <section class="tabpanel" id="panel-typing" aria-hidden="true" aria-labelledby="tab-typing">
+        <div class="row" style="justify-content:center;gap:8px;margin-bottom:8px">
+          <label for="typing-mode" class="small">Answer in:</label>
           <select id="typing-mode">
-            <option value="eng" selected="">English</option>
+            <option value="eng" selected>English</option>
             <option value="mandarin">Mandarin (普通中文)</option>
             <option value="pron">Hakka pronunciation</option>
           </select>
         </div>
-        <input id="typing-input" type="text" style="margin-top:12px;width:100%;padding:10px;font-size:16px" placeholder="Type English...">
-        <div class="answer" id="typing-feedback"></div>
+        <div id="typing-question" class="big"></div>
+        <div class="row" style="margin-top:12px;justify-content:center">
+          <input id="typing-input" type="text" placeholder="Type the English and press Enter" style="min-width:340px" />
+        </div>
+        <div id="typing-feedback" class="small" style="margin-top:6px;text-align:center"></div>
       </section>
 
-      <section class="tabpanel" id="panel-stats" aria-hidden="true">
-        <div class="stats">
-          <div>Due: <span id="stat-due">0</span></div>
-          <div>New: <span id="stat-new">0</span></div>
-          <div>Review: <span id="stat-review">0</span></div>
-          <div>Total: <span id="stat-total">0</span></div>
+      <section class="tabpanel" id="panel-stats" aria-hidden="true" aria-labelledby="tab-stats">
+        <div class="row" style="gap:12px;flex-wrap:wrap">
+          <div class="pill">Due: <span id="stat-due">0</span></div>
+          <div class="pill">New: <span id="stat-new">0</span></div>
+          <div class="pill">Review: <span id="stat-review">0</span></div>
+          <div class="pill">Total: <span id="stat-total">0</span></div>
+        </div>
+      </section>
+
+      <section class="tabpanel" id="panel-manage" aria-hidden="true" aria-labelledby="tab-manage">
+        <div class="row" style="gap:12px;align-items:flex-start;flex-wrap:wrap">
+          <div style="flex:1 1 360px" class="card">
+            <h3>Import CSV</h3>
+            <div class="small">CSV header must be <span class="mono">普通中文,客家汉字,Hakka Pronunciation,English Definition</span></div>
+            <textarea id="csv-text" rows="6" placeholder="普通中文,客家汉字,Hakka Pronunciation,English Definition&#10;昨天,晡晡日,cam2 min2 ngit5,Yesterday" style="width:100%"></textarea>
+            <div class="row" style="margin-top:10px">
+              <input id="csv-file" type="file" accept=".csv" />
+              <button id="import-csv" class="btn">Import</button>
+            </div>
+          </div>
+          <div style="flex:1 1 300px" class="card">
+            <h3>Backup / Restore</h3>
+            <div class="row">
+              <button id="export-json" class="btn">Export Progress</button>
+              <input id="import-json-file" type="file" accept="application/json" />
+              <button id="import-json" class="btn">Import Progress</button>
+            </div>
+            <div class="small">Progress is saved in your browser (localStorage).</div>
+          </div>
         </div>
       </section>
     </div>
+
+    <footer class="small" style="margin-top:14px;opacity:.8">Place <span class="mono">index.html</span> and <span class="mono">Hakka Vocabulary.csv</span> together (GitHub Pages or any static host).</footer>
   </div>
 
-<script>
-const TONE_COLORS={'1':'#ef4444','2':'#3b82f6','3':'#22c55e','4':'#a855f7','5':'#fb923c','6':'#eab308'};
-const TONE_DIACRITICS={'1':'\u0301','2':'\u0304','3':'\u030c','4':'\u0300','5':'\u030c','6':'\u0300'};
-const TTS_API_URL='https://Chaak2.pythonanywhere.com/TTS/hakka';
+  <script>
+  // ===== Theme toggle =====
+  (function(){
+    const btn=document.getElementById('theme-toggle');
+    const saved=localStorage.getItem('theme');
+    if(saved==='dark') document.body.classList.add('dark');
+    btn.textContent=document.body.classList.contains('dark')? 'Light Mode':'Dark Mode';
+    btn.onclick=()=>{
+      document.body.classList.toggle('dark');
+      const dark=document.body.classList.contains('dark');
+      localStorage.setItem('theme', dark? 'dark':'light');
+      btn.textContent=dark? 'Light Mode':'Dark Mode';
+    };
+  })();
 
-function toneSpan(txt,tone){return `<span style="color:${TONE_COLORS[tone]||'#000'}">${txt}</span>`;}
-function extractTones(pron){return (pron.match(/[1-6]/g)||[]);}
-function colorizeChars(chars,pron){const tones=extractTones(pron);return [...chars].map((c,i)=>toneSpan(c,tones[i%tones.length]||'2')).join('');}
-function pronWithDiacritics(pron){return pron.replace(/([A-Za-z]+)([1-6])/g,(m,syl,t)=>{const mark=TONE_DIACRITICS[t]||'';const vs=[...syl].map((c,i)=>'aeiouAEIOU'.includes(c)?i:-1).filter(i=>i>=0);let idx=vs.length>=2?vs[vs.length-2]:vs[0]??-1;if(idx>=0){syl=syl.slice(0,idx+1)+mark+syl.slice(idx+1);}return toneSpan(syl,t);});}
+  // ===== SRS scheduling =====
+  const DAY=24*60*60*1000; const now=()=>Date.now();
+  function schedule(card, rating){
+    const q = {Again:0, Hard:1, Good:2, Easy:3}[rating] ?? 2;
+    if(card.reps==null) card.reps=0; if(card.ease==null) card.ease=2.5; if(card.interval==null) card.interval=0;
+    if(q===0){ card.interval=0.5; card.ease=Math.max(1.3, card.ease-0.2); card.reps=0; }
+    else {
+      if(card.reps===0){ card.interval=q===3?4/24:q===2?1:0.5; }
+      else if(card.reps===1){ card.interval=q===3?3:q===2?2:1; }
+      else { card.ease=Math.max(1.3, card.ease+(q-1)*0.05-0.02); card.interval=Math.round(card.interval*card.ease*(q===1?0.9:q===3?1.15:1.0)); }
+      card.reps+=1;
+    }
+    card.due = now() + card.interval*DAY;
+  }
 
-function parseCSV(txt){const rows=[];let cur='',cols=[],inQ=false;const push=()=>{cols.push(cur);cur='';};for(const ch of txt){if(ch==='\r')continue;if(ch==='\n'){if(inQ)cur+='\n';else{push();rows.push(cols);cols=[];}continue;}if(ch==='"'){inQ=!inQ;continue;}if(ch===','&&!inQ){push();continue;}cur+=ch;}if(cur.length||cols.length){push();rows.push(cols);}return rows;}
+  // ===== Storage =====
+  const STORE_KEY='srs_decks_v1';
+  const loadAll=()=>{try{return JSON.parse(localStorage.getItem(STORE_KEY))||{}}catch(e){return {}}};
+  const saveAll=d=>localStorage.setItem(STORE_KEY, JSON.stringify(d));
+  let decks=loadAll(); let currentDeck=null; let reviewQueue=[]; let currentIndex=null;
+  const $=id=>document.getElementById(id);
 
-async function loadSeed(){try{const res=await fetch('Hakka%20Vocabulary.csv');if(!res.ok)return[];const txt=await res.text();const rows=parseCSV(txt);const h=rows[0];const idx={mandarin:h.indexOf('普通中文'),hakka:h.indexOf('客家汉字'),pron:h.indexOf('Hakka Pronunciation'),eng:h.indexOf('English Definition')};return rows.slice(1).map(r=>({mandarin:r[idx.mandarin],hakka:r[idx.hakka],pron:r[idx.pron],eng:r[idx.eng]})).filter(r=>r.hakka&&r.pron);}catch(e){return[]}}
+  function refreshDeckSelect(){}
 
-const DAY=86400000;function schedule(c,r){const q={Again:0,Hard:1,Good:2,Easy:3}[r];c.reps??=0;c.ease??=2.5;c.interval??=0;if(q===0){c.interval=0.5;c.ease=Math.max(1.3,c.ease-0.2);c.reps=0;}else{if(c.reps===0)c.interval=q===3?4/24:q===2?1:0.5;else if(c.reps===1)c.interval=q===3?3:q===2?2:1;else{c.ease=Math.max(1.3,c.ease+(q-1)*0.05-0.02);c.interval=Math.round(c.interval*c.ease*(q===1?0.9:q===3?1.15:1));}c.reps++;}c.due=Date.now()+c.interval*DAY;}
+  // ===== Streak (session vs lifetime) =====
+  function getLife(){ return parseInt(localStorage.getItem('streak_life')||'0',10)||0; }
+  function setLife(n){ localStorage.setItem('streak_life', String(n)); const el=$('streak-life'); if(el) el.textContent='Lifetime: '+n; }
+  function getSession(){ const el=$('streak-session'); const m=(el&&el.textContent||'').match(/(\d+)/); return m?parseInt(m[1],10):0; }
+  function setSession(n){ const el=$('streak-session'); if(el) el.textContent='Session: '+n; }
+  function bumpStreak(){ setSession(getSession()+1); setLife(getLife()+1); }
 
-let deck=[],queue=[],cur=null,typingMode='eng';
+  // ===== Tone coloring & diacritics =====
+  const TONE_COLORS={'1':'var(--tone1)','2':'var(--tone2)','3':'var(--tone3)','4':'var(--tone4)','5':'var(--tone5)','6':'var(--tone6)'};
+  const TONE_DIACRITICS={'1':'́','2':'̄','3':'̌','4':'̀','5':'̌','6':'̀'};
+  const toneSpan=(t,n)=>`<span style="color:${TONE_COLORS[n]||'#fff'}">${t}</span>`;
+  const extractTones=pron=>(pron.match(/[1-6]/g)||[]);
+  function colorizeCharacters(chars, pron){const tones=extractTones(pron); const out=[]; for(let i=0;i<chars.length;i++){out.push(toneSpan(chars[i], tones[i%tones.length]||'2'));} return out.join('');}
+  function convertToneNumbersToDiacritics(pron){return pron.replace(/([A-Za-z]+)([1-6])/g,(m,syl,t)=>{const mark=TONE_DIACRITICS[t]||'';const vs=[...syl].map((c,i)=>'aeiouAEIOU'.includes(c)?i:-1).filter(i=>i>=0);let idx=vs.length>=2?vs[vs.length-2]:(vs[0]??-1);if(idx>=0){syl=syl.slice(0,idx+1)+mark+syl.slice(idx+1);}return toneSpan(syl,t);});}
 
-function buildQueue(){const now=Date.now();queue=deck.map((c,i)=>({i,due:c.due||0,reps:c.reps||0})).filter(x=>x.due<=now).sort((a,b)=>a.reps-b.reps||a.due-b.due).map(x=>x.i);cur=queue.length?0:null;}
+  // ===== TTS =====
+  const TTS_API_URL='https://Chaak2.pythonanywhere.com/TTS/hakka';
+  function playTTS(pron){ const url=`${TTS_API_URL}/${encodeURIComponent((pron||'').trim())}?voice=male&speed=1`; new Audio(url).play().catch(()=>{}); }
 
-function showFlash(){if(cur==null){document.getElementById('flash-front').textContent='All done!';document.getElementById('flash-pron').textContent='';document.getElementById('flash-back').style.display='none';return;}const c=deck[queue[cur]];document.getElementById('flash-front').innerHTML=colorizeChars(c.hakka,c.pron);document.getElementById('flash-pron').innerHTML=pronWithDiacritics(c.pron);document.getElementById('flash-back').style.display='none';}
-function revealFlash(){const c=deck[queue[cur]];document.getElementById('flash-back').innerHTML=`<div class='answer'>${c.mandarin} • ${c.eng}</div>`;document.getElementById('flash-back').style.display='block';}
-function rateFlash(r){const c=deck[queue[cur]];schedule(c,r);queue.splice(cur,1);cur=queue.length?cur%queue.length:null;showFlash();}
+  // ===== Render helpers =====
+  function frontHTML(row){return `<div class="char">${colorizeCharacters(row.hakka_chars,row.pronunciation)}</div><div class="label">Hakka Pronunciation:</div><div class="pron">${convertToneNumbersToDiacritics(row.pronunciation)}</div>`;}
+  function backHTML(row){const playBtn=`<button id="play-tts" class="btn" style="border-radius:999px;width:56px;height:56px;display:inline-flex;align-items:center;justify-content:center">▶</button>`; return `<div class="char">${colorizeCharacters(row.hakka_chars,row.pronunciation)}</div><div class="label">Hakka Pronunciation:</div><div class="pron">${convertToneNumbersToDiacritics(row.pronunciation)}</div><div style="font-size:24px;margin:6px 0"><strong>普通中文:</strong> ${row.mandarin||''}</div><div style="font-size:24px;margin:6px 0"><strong>Eng:</strong> ${row.english||''}</div><div style="text-align:center;margin-top:6px">${playBtn}</div>`;}
 
-function nextMC(){if(!deck.length){document.getElementById('mc-question').textContent='No deck';return;}const c=deck[Math.floor(Math.random()*deck.length)];document.getElementById('mc-question').innerHTML=colorizeChars(c.hakka,c.pron)+`<div class='pron'>${pronWithDiacritics(c.pron)}</div>`;const opts=shuffle([c,...deck.filter(x=>x!==c).slice(0,3)]);const box=document.getElementById('mc-options');box.innerHTML='';opts.forEach(o=>{const b=document.createElement('button');b.innerHTML=o.eng;b.onclick=()=>{if(o===c){document.getElementById('mc-feedback').textContent='✓ Correct';schedule(c,'Good');}else{document.getElementById('mc-feedback').textContent=`✗ ${c.eng}`;schedule(c,'Again');}buildQueue();setTimeout(nextMC,800);};box.appendChild(b);});}
+  // ===== CSV parsing =====
+  function parseCSV(text){const rows=[]; let cur=''; let inQ=false; let cols=[]; const push=()=>{cols.push(cur); cur='';}; for(let i=0;i<text.length;i++){const ch=text[i]; if(ch==='\r') continue; if(ch==='\n'){ if(inQ){cur+='\n';} else {push(); rows.push(cols); cols=[];} continue;} if(ch==='"'){inQ=!inQ; continue;} if(ch===','&&!inQ){push(); continue;} cur+=ch;} if(cur.length||cols.length){push(); rows.push(cols);} return rows;}
 
-function nextTyping(){if(!deck.length){document.getElementById('typing-question').textContent='No deck';return;}const c=deck[Math.floor(Math.random()*deck.length)];document.getElementById('typing-question').innerHTML=colorizeChars(c.hakka,c.pron)+`<div class='pron'>${pronWithDiacritics(c.pron)}</div>`;const inp=document.getElementById('typing-input');inp.value='';document.getElementById('typing-feedback').textContent='';inp.onkeydown=e=>{if(e.key==='Enter'){let expected='';if(typingMode==='eng')expected=c.eng;else if(typingMode==='mandarin')expected=c.mandarin;else expected=c.pron;const ok=inp.value.trim().toLowerCase()===expected.toLowerCase();document.getElementById('typing-feedback').textContent=ok?'✓ Correct':`✗ ${expected}`;schedule(c,ok?'Good':'Again');buildQueue();setTimeout(nextTyping,800);}};}
+  // ===== Deck bootstrap: CSV only =====
+  function rowsToCards(rows){ return rows.map(row=>({ id: uid(), front: `${row.hakka_chars} || ${row.pronunciation}`, back: JSON.stringify(row) })); }
+  async function loadSeedFromCSV(){
+    try{
+      const res = await fetch('Hakka%20Vocabulary.csv');
+      if(!res.ok) return null; const txt = await res.text();
+      const rows = parseCSV(txt); if(!rows.length) return null;
+      const header = rows[0];
+      const idx = {
+        mandarin: header.indexOf('普通中文'),
+        hakka_chars: header.indexOf('客家汉字'),
+        pronunciation: header.indexOf('Hakka Pronunciation'),
+        english: header.indexOf('English Definition')
+      };
+      const data = rows.slice(1).map(r=>({
+        mandarin: r[idx.mandarin]||'',
+        hakka_chars: r[idx.hakka_chars]||'',
+        pronunciation: r[idx.pronunciation]||'',
+        english: r[idx.english]||''
+      })).filter(x=>x.hakka_chars && x.pronunciation);
+      return data;
+    }catch(e){ return null; }
+  }
 
-function shuffle(a){return a.sort(()=>Math.random()-0.5);}
+  function loadAllCards(){
+    const names=Object.keys(decks);
+    if(names.length){ currentDeck = decks[names[0]]; return; }
+    currentDeck=null;
+  }
 
-// Dark mode toggle with persistence
-(function(){
-  const btn = document.getElementById('theme-toggle');
-  const saved = localStorage.getItem('theme');
-  if (saved === 'dark') document.body.classList.add('dark');
-  btn.textContent = document.body.classList.contains('dark') ? 'Light Mode' : 'Dark Mode';
-  btn.onclick = () => {
-    document.body.classList.toggle('dark');
-    const dark = document.body.classList.contains('dark');
-    localStorage.setItem('theme', dark ? 'dark' : 'light');
-    btn.textContent = dark ? 'Light Mode' : 'Dark Mode';
-  };
-})();
+  function buildQueue(){
+    if(!currentDeck){ reviewQueue=[]; currentIndex=null; $('queue-info').textContent='0 due'; summarizeStats(); return; }
+    const nowt=now();
+    reviewQueue=currentDeck.cards.map((c,i)=>({i,due:c.due||0,reps:c.reps||0}))
+      .filter(x=>x.due<=nowt)
+      .sort((a,b)=> (a.reps-b.reps)||(a.due-b.due))
+      .map(x=>x.i);
+    currentIndex = reviewQueue.length? 0 : null;
+    $('queue-info').textContent = `${reviewQueue.length} due`;
+    summarizeStats();
+  }
 
+  function summarizeStats(){
+    if(!currentDeck){ $('stat-due').textContent='0'; $('stat-new').textContent='0'; $('stat-review').textContent='0'; $('stat-total').textContent='0'; return; }
+    const cs=currentDeck.cards; const total=cs.length; const nowt=now();
+    const due=cs.filter(c=>!c.due||c.due<=nowt).length;
+    const newc=cs.filter(c=>!c.reps).length;
+    const review=Math.max(0, due-newc);
+    $('stat-due').textContent=due; $('stat-new').textContent=newc; $('stat-review').textContent=review; $('stat-total').textContent=total;
+  }
 
-(async function(){deck=await loadSeed();buildQueue();showFlash();})();
+  // ===== Flashcards =====
+  function showFlash(){
+    const btnShow=$('btn-show'); const rateIds=['btn-again','btn-hard','btn-good','btn-easy'];
+    if(currentIndex==null){ $('flash-front').textContent='All done!'; $('flash-back').style.display='none'; btnShow.style.display='inline-block'; rateIds.forEach(id=>$(id).style.display='none'); return; }
+    const card=currentDeck.cards[reviewQueue[currentIndex]]; let row; try{row=JSON.parse(card.back);}catch{row=null;}
+    $('flash-front').innerHTML=row? frontHTML(row) : card.front;
+    $('flash-back').style.display='none'; btnShow.style.display='inline-block'; rateIds.forEach(id=>$(id).style.display='none');
+  }
+  function revealFlash(){
+    const rateIds=['btn-again','btn-hard','btn-good','btn-easy']; const btnShow=$('btn-show');
+    if(currentIndex==null) return; const card=currentDeck.cards[reviewQueue[currentIndex]]; let row; try{row=JSON.parse(card.back);}catch{row=null;}
+    if(row){ $('flash-back').innerHTML=backHTML(row); const pb=$('play-tts'); if(pb){ pb.onclick=()=>playTTS(row.pronunciation); } }
+    $('flash-back').style.display='block'; btnShow.style.display='none'; rateIds.forEach(id=>$(id).style.display='inline-block');
+  }
+  function rateFlash(r){
+    if(currentIndex==null) return; const card=currentDeck.cards[reviewQueue[currentIndex]];
+    schedule(card,r); if(r!=='Again') bumpStreak();
+    reviewQueue.splice(currentIndex,1); currentIndex = reviewQueue.length? Math.min(currentIndex, reviewQueue.length-1) : null;
+    buildQueue(); showFlash();
+  }
 
-document.querySelectorAll('.tabbar button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tabpanel').forEach(p=>p.setAttribute('aria-hidden','true'));document.getElementById('panel-'+b.dataset.panel).setAttribute('aria-hidden','false');document.querySelectorAll('.tabbar button').forEach(x=>x.setAttribute('aria-selected','false'));b.setAttribute('aria-selected','true');if(b.dataset.panel==='mc')nextMC();if(b.dataset.panel==='typing')nextTyping();if(b.dataset.panel==='flash')showFlash();});
+  // ===== Multiple Choice =====
+  function nextMC(){
+    if(!currentDeck || !currentDeck.cards.length){$('mc-question').textContent='No deck';$('mc-options').innerHTML=''; return;}
+    const dueIdx = (reviewQueue.length? reviewQueue[currentIndex??0] : Math.floor(Math.random()*currentDeck.cards.length));
+    const correct = currentDeck.cards[dueIdx]; let correctRow; try{correctRow=JSON.parse(correct.back);}catch{correctRow=null;}
+    $('mc-question').innerHTML = correctRow ? frontHTML(correctRow) : correct.front;
 
-document.getElementById('btn-show').onclick=()=>{revealFlash();document.getElementById('btn-show').style.display='none';['btn-again','btn-hard','btn-good','btn-easy'].forEach(id=>document.getElementById(id).style.display='inline-block');};
-document.getElementById('btn-again').onclick=()=>rateFlash('Again');document.getElementById('btn-hard').onclick=()=>rateFlash('Hard');document.getElementById('btn-good').onclick=()=>rateFlash('Good');document.getElementById('btn-easy').onclick=()=>rateFlash('Easy');
+    const pool = currentDeck.cards.filter(c=>c!==correct);
+    const distractors = shuffle(pool).slice(0,3);
+    const options = shuffle([correct, ...distractors]);
+    const box=$('mc-options'); box.innerHTML=''; $('mc-feedback').innerHTML='';
 
-document.getElementById('typing-mode').onchange=e=>{typingMode=e.target.value;};
-document.getElementById('theme-toggle').onclick=()=>{document.body.classList.toggle('dark');};
-</script>
+    options.forEach(opt=>{
+      let row; try{row=JSON.parse(opt.back);}catch{row=null;}
+      const label = row ? (row.english||row.mandarin||opt.back) : opt.back;
+      const b=document.createElement('button'); b.className='btn'; b.textContent=label; b.onclick=()=>{
+        const ok = (opt===correct); $('mc-feedback').innerHTML = ok? '✓ Correct' : `✗ ${(correctRow&&correctRow.english)||''}`;
+        if(correctRow){ $('mc-feedback').innerHTML += '<div style="margin-top:10px">'+backHTML(correctRow)+'</div>'; const pb=$('play-tts'); if(pb){ pb.onclick=()=>playTTS(correctRow.pronunciation); } }
+        schedule(correct, ok?'Good':'Again'); if(ok) bumpStreak(); buildQueue(); setTimeout(nextMC,800);
+      }; box.appendChild(b);
+    });
+  }
 
+  // ===== Typing =====
+  let typingMode='eng';
+  document.getElementById('typing-mode').onchange=e=>{ typingMode=e.target.value; localStorage.setItem('typingMode', typingMode); const inp=$('typing-input'); inp.placeholder = typingMode==='eng'? 'Type English...' : (typingMode==='mandarin'? '輸入普通中文...' : 'Type Hakka pronunciation...'); };
+  (function(){ const saved=localStorage.getItem('typingMode'); if(saved){ typingMode=saved; document.getElementById('typing-mode').value=saved; }})();
 
-</body></html>
+  function nextTyping(){
+    if(!currentDeck || !currentDeck.cards.length){$('typing-question').textContent='No deck'; return;}
+    const dueIdx = (reviewQueue.length? reviewQueue[currentIndex??0] : Math.floor(Math.random()*currentDeck.cards.length));
+    const card = currentDeck.cards[dueIdx]; let row; try{row=JSON.parse(card.back);}catch{row=null;}
+    $('typing-question').innerHTML = row? frontHTML(row) : card.front;
+    $('typing-input').value=''; $('typing-feedback').innerHTML='';
+    const expected = row ? (typingMode==='eng'? (row.english||'') : typingMode==='mandarin'? (row.mandarin||'') : (row.pronunciation||'')) : card.back;
+    $('typing-input').onkeydown=e=>{ if(e.key==='Enter'){
+      const ans=e.target.value.trim(); const ok = ans.toLowerCase().trim() === String(expected).toLowerCase().trim();
+      $('typing-feedback').innerHTML = ok? '✓ Correct' : `✗ ${expected}`;
+      if(row){ $('typing-feedback').innerHTML += '<div style="margin-top:8px">'+backHTML(row)+'</div>'; const pb=$('play-tts'); if(pb){ pb.onclick=()=>playTTS(row.pronunciation); } }
+      schedule(card, ok?'Good':'Again'); if(ok) bumpStreak(); buildQueue(); setTimeout(nextTyping,800);
+    }};
+  }
+
+  // ===== Helpers =====
+  function shuffle(a){ return a.slice().sort(()=>Math.random()-0.5); }
+  const uid=()=>Math.random().toString(36).slice(2)+Date.now().toString(36);
+
+  // ===== Import/Export =====
+  document.getElementById('import-csv')?.addEventListener('click', async ()=>{
+    if(!currentDeck){ alert('No deck loaded.'); return; }
+    let text=$('csv-text').value.trim(); if(!text && $('csv-file').files[0]) text=await $('csv-file').files[0].text(); if(!text) return alert('Paste CSV or choose a file.');
+    const rows=parseCSV(text); if(!rows.length) return alert('No rows detected.');
+    const header=rows[0]; const idx={ mandarin: header.indexOf('普通中文'), hakka_chars: header.indexOf('客家汉字'), pronunciation: header.indexOf('Hakka Pronunciation'), english: header.indexOf('English Definition') };
+    const data=rows.slice(1).map(r=>({ mandarin:r[idx.mandarin]||'', hakka_chars:r[idx.hakka_chars]||'', pronunciation:r[idx.pronunciation]||'', english:r[idx.english]||'' })).filter(x=>x.hakka_chars&&x.pronunciation);
+    const added=data.map(row=>({id:uid(), front:`${row.hakka_chars} || ${row.pronunciation}`, back:JSON.stringify(row)})); currentDeck.cards.push(...added);
+    saveAll(decks); buildQueue(); summarizeStats(); alert(`Imported ${added.length} cards.`);
+  });
+
+  document.getElementById('export-json')?.addEventListener('click', ()=>{ const data=JSON.stringify(decks,null,2); const blob=new Blob([data],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='flashcards-progress.json'; a.click(); URL.revokeObjectURL(url); });
+  document.getElementById('import-json')?.addEventListener('click', ()=>{ const f=$('import-json-file').files[0]; if(!f) return alert('Choose a file.'); f.text().then(txt=>{ try{ decks=JSON.parse(txt); saveAll(decks); loadAllCards(); buildQueue(); showFlash(); summarizeStats(); alert('Imported!'); }catch(e){ alert('Invalid JSON.'); } }); });
+
+  // ===== Tabs =====
+  document.querySelectorAll('[role="tab"]').forEach(tab=>{tab.addEventListener('click',()=>{document.querySelectorAll('.tabpanel').forEach(p=>p.setAttribute('aria-hidden','true')); document.getElementById('panel-'+tab.dataset.panel).setAttribute('aria-hidden','false'); document.querySelectorAll('[role="tab"]').forEach(t=>t.setAttribute('aria-selected','false')); tab.setAttribute('aria-selected','true'); if(tab.dataset.panel==='mc') nextMC(); if(tab.dataset.panel==='typing') nextTyping(); if(tab.dataset.panel==='flash') showFlash(); if(tab.dataset.panel==='stats') summarizeStats();});});
+
+  // ===== Bootstrap: load default CSV into a deck on first run =====
+  (async function(){
+    if(Object.keys(decks).length===0){
+      const seed = await loadSeedFromCSV();
+      if(seed && seed.length){ const name='Hakka Basics (seed)'; decks[name]={ name, createdAt:Date.now(), cards: rowsToCards(seed) }; saveAll(decks); }
+    }
+    setLife(getLife()); setSession(0);
+    loadAllCards();
+    buildQueue(); showFlash(); summarizeStats();
+  })();
+  </script>
+</body>
+</html>
