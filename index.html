@@ -34,6 +34,7 @@
     .pron{font-size:40px; margin:6px 0 8px}
     input[type="text"], textarea, select{background:#0b0f18;color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px}
   </style>
+  
 </head>
 <body>
   <div class="container">
@@ -126,7 +127,7 @@
       </section>
     </div>
 
-    <footer class="small" style="margin-top:14px;opacity:.8">Place <span class="mono">index.html</span> and <span class="mono">Hakka Vocabulary.csv</span> together (GitHub Pages or any static host).</footer>
+    <footer class="small" style="margin-top:14px;opacity:.8">Site WIP</footer>
   </div>
 
   <script>
@@ -183,9 +184,19 @@
   function colorizeCharacters(chars, pron){const tones=extractTones(pron); const out=[]; for(let i=0;i<chars.length;i++){out.push(toneSpan(chars[i], tones[i%tones.length]||'2'));} return out.join('');}
   function convertToneNumbersToDiacritics(pron){return pron.replace(/([A-Za-z]+)([1-6])/g,(m,syl,t)=>{const mark=TONE_DIACRITICS[t]||'';const vs=[...syl].map((c,i)=>'aeiouAEIOU'.includes(c)?i:-1).filter(i=>i>=0);let idx=vs.length>=2?vs[vs.length-2]:(vs[0]??-1);if(idx>=0){syl=syl.slice(0,idx+1)+mark+syl.slice(idx+1);}return toneSpan(syl,t);});}
 
+/*
   // ===== TTS =====
   const TTS_API_URL='https://Chaak2.pythonanywhere.com/TTS/hakka';
-  function playTTS(pron){ const url=`${TTS_API_URL}/${encodeURIComponent((pron||'').trim())}?voice=male&speed=1`; new Audio(url).play().catch(()=>{}); }
+  function playTTS(pron){ const url=`${TTS_API_URL}/${encodeURIComponent((pron||'').trim())}?voice=male&speed=0.5`; new Audio(url).play().catch(()=>{}); }
+*/
+
+  // ========= TTS (same API as your Anki builder) =========
+  const TTS_API_URL = "https://Chaak2.pythonanywhere.com/TTS/hakka";
+  function playTTS(pron){
+  const url = `${TTS_API_URL}/${encodeURIComponent((pron||'').trim())}?voice=male&speed=1`;
+  new Audio(url).play().catch(()=>{ /* ignore blocked play on very strict browsers */ });
+}
+
 
   // ===== Render helpers =====
   function frontHTML(row){return `<div class="char">${colorizeCharacters(row.hakka_chars,row.pronunciation)}</div><div class="label">Hakka Pronunciation:</div><div class="pron">${convertToneNumbersToDiacritics(row.pronunciation)}</div>`;}
@@ -245,7 +256,9 @@
     $('stat-due').textContent=due; $('stat-new').textContent=newc; $('stat-review').textContent=review; $('stat-total').textContent=total;
   }
 
-  // ===== Flashcards =====
+/*
+
+  // ===== Flashcards ===== 
   function showFlash(){
     const btnShow=$('btn-show'); const rateIds=['btn-again','btn-hard','btn-good','btn-easy'];
     if(currentIndex==null){ $('flash-front').textContent='All done!'; $('flash-back').style.display='none'; btnShow.style.display='inline-block'; rateIds.forEach(id=>$(id).style.display='none'); return; }
@@ -266,6 +279,105 @@
     buildQueue(); showFlash();
   }
 
+*/
+
+  // ========= Deck & Queue (CSV default) =========
+let deck = [];            // [{hakka, pron, mandarin, eng}]
+let queue = [];           // indices into deck
+let cur = null;           // index into queue
+
+// minimal CSV loader so the default deck works on deploy
+function parseCSV(text){
+  const rows=[]; let cur=''; let inQ=false; let cols=[]; const push=()=>{cols.push(cur);cur='';};
+  for(let i=0;i<text.length;i++){
+    const ch=text[i]; if(ch==='\r') continue;
+    if(ch==='\n'){ if(inQ){cur+='\n';} else {push(); rows.push(cols); cols=[];} continue; }
+    if(ch==='"'){ inQ=!inQ; continue; }
+    if(ch===',' && !inQ){ push(); continue; }
+    cur+=ch;
+  }
+  if(cur.length||cols.length){ push(); rows.push(cols); }
+  return rows;
+}
+
+async function loadDefaultCSV(){
+  try{
+    const res = await fetch('Hakka%20Vocabulary.csv');
+    if(!res.ok) return [];
+    const txt = await res.text();
+    const rows = parseCSV(txt); if(!rows.length) return [];
+    const h = rows[0];
+    const idx = { mandarin: h.indexOf('普通中文'), hakka: h.indexOf('客家汉字'), pron: h.indexOf('Hakka Pronunciation'), eng: h.indexOf('English Definition') };
+    return rows.slice(1).map(r=>({
+      mandarin: r[idx.mandarin]||'', hakka: r[idx.hakka]||'', pron: r[idx.pron]||'', eng: r[idx.eng]||''
+    })).filter(x=>x.hakka && x.pron);
+  }catch(e){ return []; }
+}
+
+function buildQueue(){
+  queue = deck.map((_,i)=>i);
+  cur = queue.length ? 0 : null;
+}
+
+// ========= Flashcards (stable show/reveal) =========
+function showFlash(){
+  const elFront = document.getElementById('flash-front');
+  const elBack  = document.getElementById('flash-back');
+  const btnShow = document.getElementById('btn-show');
+  const btnAgain= document.getElementById('btn-again');
+  const btnGood = document.getElementById('btn-good');
+
+  if(cur==null){
+    elFront.textContent='All done for now!';
+    elBack.style.display='none';
+    btnShow.style.display='inline-block';
+    btnAgain.style.display='none';
+    btnGood.style.display='none';
+    return;
+  }
+  const c = deck[queue[cur]];
+  // FRONT: only Hakka side
+  elFront.textContent = c.hakka;
+  elBack.style.display = 'none';
+  elBack.innerHTML = '';
+  btnShow.style.display = 'inline-block';
+  btnAgain.style.display = 'none';
+  btnGood .style.display = 'none';
+}
+
+function revealFlash(){
+  if(cur==null) return;
+  const c = deck[queue[cur]];
+  const elBack  = document.getElementById('flash-back');
+  const btnShow = document.getElementById('btn-show');
+  const btnAgain= document.getElementById('btn-again');
+  const btnGood = document.getElementById('btn-good');
+
+  elBack.innerHTML = `${c.hakka} · ${c.pron}<br>普通中文: ${c.mandarin || ''}<br>Eng: ${c.eng || ''} <br><button id="play-tts">▶</button>`;
+  elBack.style.display = 'block';
+  btnShow.style.display = 'none';
+  btnAgain.style.display = 'inline-block';
+  btnGood .style.display = 'inline-block';
+
+  // wire (and autoplay handled below)
+  const pb = document.getElementById('play-tts'); if(pb){ pb.onclick = ()=>playTTS(c.pron); }
+  playTTS(c.pron); // autoplay after a user click (Show) → allowed by most browsers
+}
+
+function rate(rating){
+  if(cur==null) return;
+  // naive scheduler: next card; (you can plug your SRS here later)
+  cur = (cur+1 < queue.length) ? cur+1 : null;
+  if(rating==='Good') bumpStreak();
+  showFlash();
+}
+
+// hook events
+document.getElementById('btn-show').onclick = revealFlash;
+document.getElementById('btn-again').onclick = ()=>rate('Again');
+document.getElementById('btn-good').onclick  = ()=>rate('Good');
+
+  
   // ===== Multiple Choice =====
   function nextMC(){
     if(!currentDeck || !currentDeck.cards.length){$('mc-question').textContent='No deck';$('mc-options').innerHTML=''; return;}
@@ -330,6 +442,12 @@
   // ===== Tabs =====
   document.querySelectorAll('[role="tab"]').forEach(tab=>{tab.addEventListener('click',()=>{document.querySelectorAll('.tabpanel').forEach(p=>p.setAttribute('aria-hidden','true')); document.getElementById('panel-'+tab.dataset.panel).setAttribute('aria-hidden','false'); document.querySelectorAll('[role="tab"]').forEach(t=>t.setAttribute('aria-selected','false')); tab.setAttribute('aria-selected','true'); if(tab.dataset.panel==='mc') nextMC(); if(tab.dataset.panel==='typing') nextTyping(); if(tab.dataset.panel==='flash') showFlash(); if(tab.dataset.panel==='stats') summarizeStats();});});
 
+// ========= Bootstrap (load CSV → queue → first front) =========
+(async function(){
+
+})();
+
+
   // ===== Bootstrap: load default CSV into a deck on first run =====
   (async function(){
     if(Object.keys(decks).length===0){
@@ -338,6 +456,7 @@
     }
     setLife(getLife()); setSession(0);
     loadAllCards();
+      deck = await loadDefaultCSV();
     buildQueue(); showFlash(); summarizeStats();
   })();
   </script>
