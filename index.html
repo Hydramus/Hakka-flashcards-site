@@ -9,14 +9,19 @@
       --bg:#0f1115; --ink:#e5e7eb; --muted:#94a3b8; --card:#161a22; --line:#263042;
       --tone1:#ef4444; --tone2:#3b82f6; --tone3:#22c55e; --tone4:#a855f7; --tone5:#fb923c; --tone6:#eab308;
     }
+    /* Light theme overrides while keeping your original look */
+    body.light{ --bg:#fafafa; --ink:#0f1115; --muted:#475569; --card:#ffffff; --line:#cbd5e1; }
+
     body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;}
     .container{max-width:1080px;margin:0 auto;padding:24px}
     header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
     h1{margin:0;font-size:36px;font-weight:800;letter-spacing:.4px}
     .subtitle{color:var(--muted)}
     .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-    .pill{padding:6px 10px;border-radius:999px;background:#0b0f18;border:1px solid var(--line);color:var(--muted);font-size:12px}
+    .pill{padding:6px 10px;border-radius:999px;background:#0b0f18;border:1px solid var(--line);color:var(--muted);font-size:24px}
+    body.light .pill{background:#eef2f7}
     .btn{background:#141a27;border:1px solid var(--line);color:var(--ink);border-radius:12px;padding:10px 12px;cursor:pointer}
+    body.light .btn{background:#f8fafc}
     .btn.good{border-color:#16a34a}
     .btn.warn{border-color:#f59e0b}
     .btn.bad{border-color:#ef4444}
@@ -24,6 +29,8 @@
     .tabbar{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
     .tabbar button{background:#141a27;color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer}
     .tabbar button[aria-selected="true"]{background:#1a2340}
+    body.light .tabbar button{background:#f3f4f6}
+    body.light .tabbar button[aria-selected="true"]{background:#dbeafe}
     .tabpanel{display:none}
     .tabpanel[aria-hidden="false"]{display:block}
     .big{font-size:40px;text-align:center;line-height:1.2}
@@ -33,6 +40,44 @@
     .label{font-size:32px; font-weight:800; margin:10px 0 2px}
     .pron{font-size:40px; margin:6px 0 8px}
     input[type="text"], textarea, select{background:#0b0f18;color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px}
+    body.light input[type="text"], body.light textarea, body.light select{background:#fff}
+      /* MC panel needs a positioning context + bottom padding for the button */
+  #panel-mc{ position:relative; min-height:360px; padding-bottom:72px; }
+  /* Multiple Choice panel positioning and bottom Next */
+  #mc-next{
+    position:absolute; left:50%; transform:translateX(-50%);
+    bottom:12px;
+  }
+  /* Flashcard panel positioning and bottom Next */
+  #panel-flash{ position:relative; min-height:360px; padding-bottom:72px; }
+  #flash-next{
+    position:absolute; left:50%; transform:translateX(-50%);
+    bottom:12px;
+  }
+  /* Typing panel positioning and bottom Next */
+  #panel-typing{ position:relative; min-height:360px; padding-bottom:72px; }
+  #typing-next{
+    position:absolute; left:50%; transform:translateX(-50%);
+    bottom:12px;
+  }
+  .stats-row .stat-pill{ font-size:24px; padding:8px 14px; }
+  .stats-row .stat-pill span{ font-size:24px; font-weight:800; }
+  #panel-stats .stat-pill{ font-size:24px; padding:8px 14px; }
+  #panel-stats .stat-pill span{ font-size:24px; font-weight:800; }
+
+  /* Result tag shown above the back of the card in MC */
+    .result-tag{
+      display:inline-block;
+      padding:4px 10px;
+      border-radius:999px;
+      font-size:24px;
+      font-weight:600;
+      margin-bottom:10px;
+      border:1px solid var(--line);
+    }
+    .result-tag.correct{ color:#16a34a; border-color:#16a34a22; background:rgba(22,163,74,.08); }
+    .result-tag.incorrect{ color:#ef4444; border-color:#ef444422; background:rgba(239,68,68,.08); }
+
   </style>
   
 </head>
@@ -59,6 +104,7 @@
         <button role="tab" id="tab-manage" data-panel="manage">Import/Export</button>
       </div>
 
+      <!-- FLASHCARDS -->
       <section class="tabpanel" id="panel-flash" aria-hidden="false" aria-labelledby="tab-flash">
         <div class="big" id="flash-front"></div>
         <div class="big" id="flash-back" style="display:none;margin-top:10px;opacity:.98"></div>
@@ -68,16 +114,20 @@
           <button id="btn-hard" class="btn warn" style="display:none">Hard</button>
           <button id="btn-good" class="btn" style="display:none">Good</button>
           <button id="btn-easy" class="btn good" style="display:none">Easy</button>
+          <button id="flash-next" class="btn" style="display:none;margin-top:10px">Next</button>
         </div>
         <div class="small" style="text-align:center;margin-top:8px"><span id="queue-info">0 due</span></div>
       </section>
 
+      <!-- MULTIPLE CHOICE -->
       <section class="tabpanel" id="panel-mc" aria-hidden="true" aria-labelledby="tab-mc">
         <div id="mc-question" class="big"></div>
         <div id="mc-options" class="row" style="margin-top:16px;justify-content:center;flex-wrap:wrap"></div>
         <div id="mc-feedback" class="small" style="margin-top:8px;text-align:center"></div>
+        <button id="mc-next" class="btn" style="display:none;margin-top:10px">Next</button>
       </section>
 
+      <!-- TYPING -->
       <section class="tabpanel" id="panel-typing" aria-hidden="true" aria-labelledby="tab-typing">
         <div class="row" style="justify-content:center;gap:8px;margin-bottom:8px">
           <label for="typing-mode" class="small">Answer in:</label>
@@ -92,17 +142,24 @@
           <input id="typing-input" type="text" placeholder="Type the English and press Enter" style="min-width:340px" />
         </div>
         <div id="typing-feedback" class="small" style="margin-top:6px;text-align:center"></div>
+        <button id="typing-next" class="btn" style="display:none;margin-top:10px">Next</button>
       </section>
 
+      <!-- STATS -->
       <section class="tabpanel" id="panel-stats" aria-hidden="true" aria-labelledby="tab-stats">
-        <div class="row" style="gap:12px;flex-wrap:wrap">
+        <div class="row" style="gap:24px;flex-wrap:wrap">
           <div class="pill">Due: <span id="stat-due">0</span></div>
           <div class="pill">New: <span id="stat-new">0</span></div>
           <div class="pill">Review: <span id="stat-review">0</span></div>
           <div class="pill">Total: <span id="stat-total">0</span></div>
         </div>
+        <div class="row" style="gap:12px;flex-wrap:wrap;margin-top:12px">
+          <div class="pill stat-pill">Session Vocab: <span id="vocab-session">0</span></div>
+          <div class="pill stat-pill">Lifetime Vocab: <span id="vocab-life">0</span></div>
+        </div>
       </section>
 
+      <!-- IMPORT/EXPORT -->
       <section class="tabpanel" id="panel-manage" aria-hidden="true" aria-labelledby="tab-manage">
         <div class="row" style="gap:12px;align-items:flex-start;flex-wrap:wrap">
           <div style="flex:1 1 360px" class="card">
@@ -131,17 +188,17 @@
   </div>
 
   <script>
-  // ===== Theme toggle =====
+  // ===== Theme toggle (using body.light, preserving original look) =====
   (function(){
     const btn=document.getElementById('theme-toggle');
     const saved=localStorage.getItem('theme');
-    if(saved==='dark') document.body.classList.add('dark');
-    btn.textContent=document.body.classList.contains('dark')? 'Light Mode':'Dark Mode';
+    if(saved==='light') document.body.classList.add('light');
+    btn.textContent=document.body.classList.contains('light')? 'Dark Mode':'Light Mode';
     btn.onclick=()=>{
-      document.body.classList.toggle('dark');
-      const dark=document.body.classList.contains('dark');
-      localStorage.setItem('theme', dark? 'dark':'light');
-      btn.textContent=dark? 'Light Mode':'Dark Mode';
+      document.body.classList.toggle('light');
+      const isLight=document.body.classList.contains('light');
+      localStorage.setItem('theme', isLight? 'light':'dark');
+      btn.textContent=isLight? 'Dark Mode':'Light Mode';
     };
   })();
 
@@ -167,14 +224,29 @@
   let decks=loadAll(); let currentDeck=null; let reviewQueue=[]; let currentIndex=null;
   const $=id=>document.getElementById(id);
 
-  function refreshDeckSelect(){}
-
   // ===== Streak (session vs lifetime) =====
   function getLife(){ return parseInt(localStorage.getItem('streak_life')||'0',10)||0; }
   function setLife(n){ localStorage.setItem('streak_life', String(n)); const el=$('streak-life'); if(el) el.textContent='Lifetime: '+n; }
   function getSession(){ const el=$('streak-session'); const m=(el&&el.textContent||'').match(/(\d+)/); return m?parseInt(m[1],10):0; }
   function setSession(n){ const el=$('streak-session'); if(el) el.textContent='Session: '+n; }
-  function bumpStreak(){ setSession(getSession()+1); setLife(getLife()+1); }
+  function bumpStreak(){ setSession(getSession()+1); setLife(getLife()+1);syncVocabCounters();  }
+
+  // ===== Vocab (session vs lifetime) — mirror the streak pills =====
+  function syncVocabCounters(){
+    const s = getSession();
+    const l = getLife();
+    const sv = document.getElementById('vocab-session');
+    const lv = document.getElementById('vocab-life');
+    if(sv) sv.textContent = s;
+    if(lv) lv.textContent = l;
+  }
+
+  // keep the old names but make them wrappers so existing calls don't break
+  function getLifeVocab(){ return getLife(); }
+  function setLifeVocab(n){ setLife(n); syncVocabCounters(); }
+  function getSessionVocab(){ return getSession(); }
+  function setSessionVocab(n){ setSession(n); syncVocabCounters(); }
+  function bumpVocab(){ syncVocabCounters(); }
 
   // ===== Tone coloring & diacritics =====
   const TONE_COLORS={'1':'var(--tone1)','2':'var(--tone2)','3':'var(--tone3)','4':'var(--tone4)','5':'var(--tone5)','6':'var(--tone6)'};
@@ -184,23 +256,28 @@
   function colorizeCharacters(chars, pron){const tones=extractTones(pron); const out=[]; for(let i=0;i<chars.length;i++){out.push(toneSpan(chars[i], tones[i%tones.length]||'2'));} return out.join('');}
   function convertToneNumbersToDiacritics(pron){return pron.replace(/([A-Za-z]+)([1-6])/g,(m,syl,t)=>{const mark=TONE_DIACRITICS[t]||'';const vs=[...syl].map((c,i)=>'aeiouAEIOU'.includes(c)?i:-1).filter(i=>i>=0);let idx=vs.length>=2?vs[vs.length-2]:(vs[0]??-1);if(idx>=0){syl=syl.slice(0,idx+1)+mark+syl.slice(idx+1);}return toneSpan(syl,t);});}
 
-/*
-  // ===== TTS =====
-  const TTS_API_URL='https://Chaak2.pythonanywhere.com/TTS/hakka';
-  function playTTS(pron){ const url=`${TTS_API_URL}/${encodeURIComponent((pron||'').trim())}?voice=male&speed=0.5`; new Audio(url).play().catch(()=>{}); }
-*/
-
-  // ========= TTS (same API as your Anki builder) =========
+  // ===== TTS (same API as your Anki builder) =====
   const TTS_API_URL = "https://Chaak2.pythonanywhere.com/TTS/hakka";
   function playTTS(pron){
-  const url = `${TTS_API_URL}/${encodeURIComponent((pron||'').trim())}?voice=male&speed=1`;
-  new Audio(url).play().catch(()=>{ /* ignore blocked play on very strict browsers */ });
-}
+    const url = `${TTS_API_URL}/${encodeURIComponent((pron||'').trim())}?voice=male&speed=1`;
+    new Audio(url).play().catch(()=>{});
+  }
 
-
-  // ===== Render helpers =====
-  function frontHTML(row){return `<div class="char">${colorizeCharacters(row.hakka_chars,row.pronunciation)}</div><div class="label">Hakka Pronunciation:</div><div class="pron">${convertToneNumbersToDiacritics(row.pronunciation)}</div>`;}
-  function backHTML(row){const playBtn=`<button id="play-tts" class="btn" style="border-radius:999px;width:56px;height:56px;display:inline-flex;align-items:center;justify-content:center">▶</button>`; return `<div class="char">${colorizeCharacters(row.hakka_chars,row.pronunciation)}</div><div class="label">Hakka Pronunciation:</div><div class="pron">${convertToneNumbersToDiacritics(row.pronunciation)}</div><div style="font-size:24px;margin:6px 0"><strong>普通中文:</strong> ${row.mandarin||''}</div><div style="font-size:24px;margin:6px 0"><strong>Eng:</strong> ${row.english||''}</div><div style="text-align:center;margin-top:6px">${playBtn}</div>`;}
+  // ===== Render helpers (used in all 3 modes) =====
+  function frontHTML(row){
+    return `<div class="char">${colorizeCharacters(row.hakka_chars,row.pronunciation)}</div>
+            <div class="label">Hakka Pronunciation:</div>
+            <div class="pron">${convertToneNumbersToDiacritics(row.pronunciation)}</div>`;
+  }
+  function backHTML(row){
+    const playBtn = `<button id="play-tts" class="btn" style="border-radius:999px;width:56px;height:56px;display:inline-flex;align-items:center;justify-content:center">▶</button>`;
+    return `<div class="char">${colorizeCharacters(row.hakka_chars,row.pronunciation)}</div>
+            <div class="label">Hakka Pronunciation:</div>
+            <div class="pron">${convertToneNumbersToDiacritics(row.pronunciation)}</div>
+            <div style="font-size:24px;margin:6px 0"><strong>普通中文:</strong> ${row.mandarin||''}</div>
+            <div style="font-size:24px;margin:6px 0"><strong>Eng:</strong> ${row.english||''}</div>
+            <div style="text-align:center;margin-top:6px">${playBtn}</div>`;
+  }
 
   // ===== CSV parsing =====
   function parseCSV(text){const rows=[]; let cur=''; let inQ=false; let cols=[]; const push=()=>{cols.push(cur); cur='';}; for(let i=0;i<text.length;i++){const ch=text[i]; if(ch==='\r') continue; if(ch==='\n'){ if(inQ){cur+='\n';} else {push(); rows.push(cols); cols=[];} continue;} if(ch==='"'){inQ=!inQ; continue;} if(ch===','&&!inQ){push(); continue;} cur+=ch;} if(cur.length||cols.length){push(); rows.push(cols);} return rows;}
@@ -235,194 +312,304 @@
     currentDeck=null;
   }
 
+  // ===== Randomized "due" queue (still ends cleanly) =====
+  function shuffle(a){ return a.slice().sort(()=>Math.random()-0.5); }
   function buildQueue(){
     if(!currentDeck){ reviewQueue=[]; currentIndex=null; $('queue-info').textContent='0 due'; summarizeStats(); return; }
     const nowt=now();
-    reviewQueue=currentDeck.cards.map((c,i)=>({i,due:c.due||0,reps:c.reps||0}))
+    const dueIdx = currentDeck.cards.map((c,i)=>({i,due:c.due||0,reps:c.reps||0}))
       .filter(x=>x.due<=nowt)
-      .sort((a,b)=> (a.reps-b.reps)||(a.due-b.due))
       .map(x=>x.i);
-    currentIndex = reviewQueue.length? 0 : null;
+    reviewQueue = shuffle(dueIdx);                  // randomized order
+    currentIndex = reviewQueue.length? 0 : null;    // ends as "All done!" when empty
     $('queue-info').textContent = `${reviewQueue.length} due`;
     summarizeStats();
   }
 
   function summarizeStats(){
-    if(!currentDeck){ $('stat-due').textContent='0'; $('stat-new').textContent='0'; $('stat-review').textContent='0'; $('stat-total').textContent='0'; return; }
-    const cs=currentDeck.cards; const total=cs.length; const nowt=now();
-    const due=cs.filter(c=>!c.due||c.due<=nowt).length;
-    const newc=cs.filter(c=>!c.reps).length;
-    const review=Math.max(0, due-newc);
-    $('stat-due').textContent=due; $('stat-new').textContent=newc; $('stat-review').textContent=review; $('stat-total').textContent=total;
-  }
-
-/*
-
-  // ===== Flashcards ===== 
-  function showFlash(){
-    const btnShow=$('btn-show'); const rateIds=['btn-again','btn-hard','btn-good','btn-easy'];
-    if(currentIndex==null){ $('flash-front').textContent='All done!'; $('flash-back').style.display='none'; btnShow.style.display='inline-block'; rateIds.forEach(id=>$(id).style.display='none'); return; }
-    const card=currentDeck.cards[reviewQueue[currentIndex]]; let row; try{row=JSON.parse(card.back);}catch{row=null;}
-    $('flash-front').innerHTML=row? frontHTML(row) : card.front;
-    $('flash-back').style.display='none'; btnShow.style.display='inline-block'; rateIds.forEach(id=>$(id).style.display='none');
-  }
-  function revealFlash(){
-    const rateIds=['btn-again','btn-hard','btn-good','btn-easy']; const btnShow=$('btn-show');
-    if(currentIndex==null) return; const card=currentDeck.cards[reviewQueue[currentIndex]]; let row; try{row=JSON.parse(card.back);}catch{row=null;}
-    if(row){ $('flash-back').innerHTML=backHTML(row); const pb=$('play-tts'); if(pb){ pb.onclick=()=>playTTS(row.pronunciation); } }
-    $('flash-back').style.display='block'; btnShow.style.display='none'; rateIds.forEach(id=>$(id).style.display='inline-block');
-  }
-  function rateFlash(r){
-    if(currentIndex==null) return; const card=currentDeck.cards[reviewQueue[currentIndex]];
-    schedule(card,r); if(r!=='Again') bumpStreak();
-    reviewQueue.splice(currentIndex,1); currentIndex = reviewQueue.length? Math.min(currentIndex, reviewQueue.length-1) : null;
-    buildQueue(); showFlash();
-  }
-
-*/
-
-  // ========= Deck & Queue (CSV default) =========
-let deck = [];            // [{hakka, pron, mandarin, eng}]
-let queue = [];           // indices into deck
-let cur = null;           // index into queue
-
-// minimal CSV loader so the default deck works on deploy
-function parseCSV(text){
-  const rows=[]; let cur=''; let inQ=false; let cols=[]; const push=()=>{cols.push(cur);cur='';};
-  for(let i=0;i<text.length;i++){
-    const ch=text[i]; if(ch==='\r') continue;
-    if(ch==='\n'){ if(inQ){cur+='\n';} else {push(); rows.push(cols); cols=[];} continue; }
-    if(ch==='"'){ inQ=!inQ; continue; }
-    if(ch===',' && !inQ){ push(); continue; }
-    cur+=ch;
-  }
-  if(cur.length||cols.length){ push(); rows.push(cols); }
-  return rows;
-}
-
-async function loadDefaultCSV(){
-  try{
-    const res = await fetch('Hakka%20Vocabulary.csv');
-    if(!res.ok) return [];
-    const txt = await res.text();
-    const rows = parseCSV(txt); if(!rows.length) return [];
-    const h = rows[0];
-    const idx = { mandarin: h.indexOf('普通中文'), hakka: h.indexOf('客家汉字'), pron: h.indexOf('Hakka Pronunciation'), eng: h.indexOf('English Definition') };
-    return rows.slice(1).map(r=>({
-      mandarin: r[idx.mandarin]||'', hakka: r[idx.hakka]||'', pron: r[idx.pron]||'', eng: r[idx.eng]||''
-    })).filter(x=>x.hakka && x.pron);
-  }catch(e){ return []; }
-}
-
-function buildQueue(){
-  queue = deck.map((_,i)=>i);
-  cur = queue.length ? 0 : null;
-}
-
-// ========= Flashcards (stable show/reveal) =========
-function showFlash(){
-  const elFront = document.getElementById('flash-front');
-  const elBack  = document.getElementById('flash-back');
-  const btnShow = document.getElementById('btn-show');
-  const btnAgain= document.getElementById('btn-again');
-  const btnGood = document.getElementById('btn-good');
-
-  if(cur==null){
-    elFront.textContent='All done for now!';
-    elBack.style.display='none';
-    btnShow.style.display='inline-block';
-    btnAgain.style.display='none';
-    btnGood.style.display='none';
+  if(!currentDeck){
+    $('stat-due').textContent='0'; $('stat-new').textContent='0';
+    $('stat-review').textContent='0'; $('stat-total').textContent='0';
+    if($('vocab-session')) $('vocab-session').textContent = getSessionVocab();
+    if($('vocab-life')) $('vocab-life').textContent = getLifeVocab();
     return;
   }
-  const c = deck[queue[cur]];
-  // FRONT: only Hakka side
-  elFront.textContent = c.hakka;
-  elBack.style.display = 'none';
-  elBack.innerHTML = '';
-  btnShow.style.display = 'inline-block';
-  btnAgain.style.display = 'none';
-  btnGood .style.display = 'none';
+  const cs=currentDeck.cards; const total=cs.length; const nowt=now();
+  const due=cs.filter(c=>!c.due||c.due<=nowt).length;
+  const newc=cs.filter(c=>!c.reps).length;
+  const review=Math.max(0, due-newc);
+  $('stat-due').textContent=due; $('stat-new').textContent=newc;
+  $('stat-review').textContent=review; $('stat-total').textContent=total;
+
+  // Keep vocab counters in sync when visiting Stats
+  if($('vocab-session')) $('vocab-session').textContent = getSessionVocab();
+  if($('vocab-life')) $('vocab-life').textContent = getLifeVocab();
+}
+
+// ===== Flashcards (replace front with back, autoplay TTS, Next to advance) =====
+function showFlash(){
+  const btnShow=$('btn-show'); const rateIds=['btn-again','btn-hard','btn-good','btn-easy'];
+  const btnNext=$('flash-next');
+  if(currentIndex==null){
+    $('flash-front').textContent='All done!';
+    $('flash-back').style.display='none';
+    btnShow.style.display='inline-block';
+    btnNext.style.display='none';
+    rateIds.forEach(id=>$(id).style.display='none');
+    return;
+  }
+  const card=currentDeck.cards[reviewQueue[currentIndex]];
+  let row; try{row=JSON.parse(card.back);}catch{row=null;}
+  $('flash-front').innerHTML=row? frontHTML(row) : card.front;
+
+  // ensure only Show is visible at first
+  $('flash-back').style.display='none';
+  btnShow.style.display='inline-block';
+  btnNext.style.display='none';
+  rateIds.forEach(id=>$(id).style.display='none');
 }
 
 function revealFlash(){
-  if(cur==null) return;
-  const c = deck[queue[cur]];
-  const elBack  = document.getElementById('flash-back');
-  const btnShow = document.getElementById('btn-show');
-  const btnAgain= document.getElementById('btn-again');
-  const btnGood = document.getElementById('btn-good');
+  if(currentIndex==null) return;
+  const btnShow=$('btn-show'); const btnNext=$('flash-next');
+  const rateIds=['btn-again','btn-hard','btn-good','btn-easy'];
 
-  elBack.innerHTML = `${c.hakka} · ${c.pron}<br>普通中文: ${c.mandarin || ''}<br>Eng: ${c.eng || ''} <br><button id="play-tts">▶</button>`;
-  elBack.style.display = 'block';
-  btnShow.style.display = 'none';
-  btnAgain.style.display = 'inline-block';
-  btnGood .style.display = 'inline-block';
+  const card=currentDeck.cards[reviewQueue[currentIndex]];
+  let row; try{row=JSON.parse(card.back);}catch{row=null;}
 
-  // wire (and autoplay handled below)
-  const pb = document.getElementById('play-tts'); if(pb){ pb.onclick = ()=>playTTS(c.pron); }
-  playTTS(c.pron); // autoplay after a user click (Show) → allowed by most browsers
+  // === Replace FRONT with BACK (same as MC) ===
+  if(row){
+    $('flash-front').innerHTML = backHTML(row);
+    const pb=$('play-tts'); if(pb){ pb.onclick=()=>playTTS(row.pronunciation); }
+    playTTS(row.pronunciation); // autoplay on reveal
+  } else {
+    $('flash-front').textContent = card.back || '(no back)';
+  }
+
+  // Hide the separate back container & rating buttons; show Next
+  $('flash-back').style.display='none';
+  btnShow.style.display='none';
+  rateIds.forEach(id=>$(id).style.display='none');
+  btnNext.style.display='inline-block';
 }
 
-function rate(rating){
-  if(cur==null) return;
-  // naive scheduler: next card; (you can plug your SRS here later)
-  cur = (cur+1 < queue.length) ? cur+1 : null;
-  if(rating==='Good') bumpStreak();
+function nextFlash(){
+  if(currentIndex==null) return;
+  const card=currentDeck.cards[reviewQueue[currentIndex]];
+
+  // Default schedule as 'Good' to move along like MC’s Next
+  schedule(card,'Good'); bumpStreak();
+
+  // advance queue
+  reviewQueue.splice(currentIndex,1);
+  currentIndex = reviewQueue.length? Math.min(currentIndex, reviewQueue.length-1) : null;
+
+  buildQueue();
   showFlash();
 }
 
-// hook events
-document.getElementById('btn-show').onclick = revealFlash;
-document.getElementById('btn-again').onclick = ()=>rate('Again');
-document.getElementById('btn-good').onclick  = ()=>rate('Good');
+// ===== Wire Flash buttons =====
+$('btn-show').onclick = revealFlash;
+$('flash-next').onclick = nextFlash;
+//  if you want to keep them available, we can show them together with Next.)
 
-  
-  // ===== Multiple Choice =====
-  function nextMC(){
-    if(!currentDeck || !currentDeck.cards.length){$('mc-question').textContent='No deck';$('mc-options').innerHTML=''; return;}
-    const dueIdx = (reviewQueue.length? reviewQueue[currentIndex??0] : Math.floor(Math.random()*currentDeck.cards.length));
-    const correct = currentDeck.cards[dueIdx]; let correctRow; try{correctRow=JSON.parse(correct.back);}catch{correctRow=null;}
-    $('mc-question').innerHTML = correctRow ? frontHTML(correctRow) : correct.front;
+  // ===== Multiple Choice (hold after reveal, Next to advance, TTS autoplay) =====
 
-    const pool = currentDeck.cards.filter(c=>c!==correct);
+    function nextMC(){
+    if(!currentDeck || !currentDeck.cards.length){
+        $('mc-question').textContent='No deck';
+        $('mc-options').innerHTML='';
+        $('mc-feedback').innerHTML='';
+        $('mc-next').style.display='none';
+        return;
+    }
+
+    // Choose a due card (or random if none due)
+    const dueIdx  = (reviewQueue.length ? (currentIndex ?? 0) : Math.floor(Math.random()*currentDeck.cards.length));
+    const cardIdx = reviewQueue.length ? reviewQueue[dueIdx] : dueIdx;
+    const correct = currentDeck.cards[cardIdx];
+
+    let row; try{ row = JSON.parse(correct.back); } catch { row = null; }
+
+    // FRONT as the prompt
+    $('mc-question').innerHTML = row ? frontHTML(row) : correct.front;
+
+    // Build option buttons
+    const pool = currentDeck.cards.filter(c => c !== correct);
     const distractors = shuffle(pool).slice(0,3);
     const options = shuffle([correct, ...distractors]);
-    const box=$('mc-options'); box.innerHTML=''; $('mc-feedback').innerHTML='';
+
+    const box = $('mc-options'); box.innerHTML='';
+    $('mc-feedback').innerHTML='';
+    const btnNext = $('mc-next'); btnNext.style.display='none';
+    box.style.display = 'flex';
+    let locked = false;
+
+    function lockButtons(){
+        locked = true;
+        [...box.querySelectorAll('button')].forEach(b => b.disabled = true);
+    }
 
     options.forEach(opt=>{
-      let row; try{row=JSON.parse(opt.back);}catch{row=null;}
-      const label = row ? (row.english||row.mandarin||opt.back) : opt.back;
-      const b=document.createElement('button'); b.className='btn'; b.textContent=label; b.onclick=()=>{
-        const ok = (opt===correct); $('mc-feedback').innerHTML = ok? '✓ Correct' : `✗ ${(correctRow&&correctRow.english)||''}`;
-        if(correctRow){ $('mc-feedback').innerHTML += '<div style="margin-top:10px">'+backHTML(correctRow)+'</div>'; const pb=$('play-tts'); if(pb){ pb.onclick=()=>playTTS(correctRow.pronunciation); } }
-        schedule(correct, ok?'Good':'Again'); if(ok) bumpStreak(); buildQueue(); setTimeout(nextMC,800);
-      }; box.appendChild(b);
+        let oRow; try{ oRow = JSON.parse(opt.back); } catch { oRow = null; }
+        const label = oRow ? (oRow.english || oRow.mandarin || opt.back) : opt.back;
+
+        const b = document.createElement('button');
+        b.className = 'btn';
+        b.textContent = label;
+        b.onclick = () => {
+        if(locked) return;
+        const ok = (opt === correct);
+        b.style.borderColor = ok ? '#16a34a' : '#ef4444';
+
+        // Build a subtle tag + replace FRONT with BACK
+        const tag = `<div class="result-tag ${ok?'correct':'incorrect'}" aria-live="polite">${ok?'Correct':'Incorrect'}</div>`;
+        if(row){
+            $('mc-question').innerHTML = tag + backHTML(row);
+            const pb = $('play-tts'); if(pb){ pb.onclick = () => playTTS(row.pronunciation); }
+            playTTS(row.pronunciation); // autoplay on reveal
+        } else {
+            $('mc-question').innerHTML = tag + (correct.back || '(no back)');
+        }
+
+        // Hide options after reveal (so back fully replaces the front)
+        lockButtons();
+        box.style.display = 'none';
+
+        // Schedule / streak / queue — no auto-advance
+        schedule(correct, ok ? 'Good' : 'Again');
+        if (ok) bumpStreak();
+        buildQueue();
+
+        btnNext.style.display = 'inline-block';
+        };
+        box.appendChild(b);
     });
+
+  // Advance on Next
+  btnNext.onclick = () => {
+    if(reviewQueue.length){
+      currentIndex = Math.min(currentIndex ?? 0, Math.max(0, reviewQueue.length - 1));
+    } else {
+      currentIndex = null;
+    }
+    nextMC();
+  };
+}
+
+
+// ===== Typing (MC-like: result tag, back replaces front, TTS autoplay, Next) =====
+let typingMode='eng';
+document.getElementById('typing-mode').onchange=e=>{
+  typingMode=e.target.value; localStorage.setItem('typingMode', typingMode);
+  const inp=document.getElementById('typing-input');
+  inp.placeholder = typingMode==='eng'
+    ? 'Type English and press Enter'
+    : (typingMode==='mandarin' ? '輸入普通中文...' : 'Use Hakka pinyim number tone. e.g. lui4 zui4 ');
+};
+(function(){
+  const saved=localStorage.getItem('typingMode');
+  if(saved){ typingMode=saved; document.getElementById('typing-mode').value=saved; }
+})();
+
+// Helper: do we have a deck & queue mechanism available?
+function hasDeck(){
+  return (typeof currentDeck!=='undefined' && currentDeck && Array.isArray(currentDeck.cards));
+}
+
+// Core: set up one question
+function nextTyping(){
+  const qEl = document.getElementById('typing-question');
+  const inp = document.getElementById('typing-input');
+  const fb  = document.getElementById('typing-feedback');
+  const nxt = document.getElementById('typing-next');
+
+  if(!hasDeck() || !currentDeck.cards.length){
+    qEl.textContent = 'No deck';
+    inp.value=''; fb.textContent=''; nxt.style.display='none';
+    return;
   }
 
-  // ===== Typing =====
-  let typingMode='eng';
-  document.getElementById('typing-mode').onchange=e=>{ typingMode=e.target.value; localStorage.setItem('typingMode', typingMode); const inp=$('typing-input'); inp.placeholder = typingMode==='eng'? 'Type English...' : (typingMode==='mandarin'? '輸入普通中文...' : 'Type Hakka pronunciation...'); };
-  (function(){ const saved=localStorage.getItem('typingMode'); if(saved){ typingMode=saved; document.getElementById('typing-mode').value=saved; }})();
+  // If you keep the SRS queue, prefer a due card; else pick random
+  const dueIdx = (Array.isArray(reviewQueue) && reviewQueue.length
+                  ? (currentIndex ?? 0)
+                  : Math.floor(Math.random()*currentDeck.cards.length));
+  const cardIdx = (Array.isArray(reviewQueue) && reviewQueue.length) ? reviewQueue[dueIdx] : dueIdx;
+  const card    = currentDeck.cards[cardIdx];
 
-  function nextTyping(){
-    if(!currentDeck || !currentDeck.cards.length){$('typing-question').textContent='No deck'; return;}
-    const dueIdx = (reviewQueue.length? reviewQueue[currentIndex??0] : Math.floor(Math.random()*currentDeck.cards.length));
-    const card = currentDeck.cards[dueIdx]; let row; try{row=JSON.parse(card.back);}catch{row=null;}
-    $('typing-question').innerHTML = row? frontHTML(row) : card.front;
-    $('typing-input').value=''; $('typing-feedback').innerHTML='';
-    const expected = row ? (typingMode==='eng'? (row.english||'') : typingMode==='mandarin'? (row.mandarin||'') : (row.pronunciation||'')) : card.back;
-    $('typing-input').onkeydown=e=>{ if(e.key==='Enter'){
-      const ans=e.target.value.trim(); const ok = ans.toLowerCase().trim() === String(expected).toLowerCase().trim();
-      $('typing-feedback').innerHTML = ok? '✓ Correct' : `✗ ${expected}`;
-      if(row){ $('typing-feedback').innerHTML += '<div style="margin-top:8px">'+backHTML(row)+'</div>'; const pb=$('play-tts'); if(pb){ pb.onclick=()=>playTTS(row.pronunciation); } }
-      schedule(card, ok?'Good':'Again'); if(ok) bumpStreak(); buildQueue(); setTimeout(nextTyping,800);
-    }};
-  }
+  let row; try{ row = JSON.parse(card.back); } catch { row = null; }
+
+  // FRONT prompt with tone colors
+  qEl.innerHTML = row ? frontHTML(row) : (card.front || '');
+  fb.innerHTML = '';
+  nxt.style.display = 'none';
+  inp.disabled = false;
+  inp.value = '';
+  // put cursor in the field for fast drilling
+  setTimeout(()=>inp.focus(), 0);
+
+  // expected target per mode
+  const expected = row
+    ? (typingMode==='eng'      ? (row.english||'')
+     : typingMode==='mandarin' ? (row.mandarin||'')
+     :                           (row.pronunciation||''))
+    : (card.back || '');
+
+  // Key handler: Enter → reveal back (guard IME/composition)
+  inp.onkeydown = (e)=>{
+    if(e.isComposing) return;            // ignore while composing IME text
+    if(e.key !== 'Enter') return;
+    e.preventDefault();
+
+    const ans = inp.value.trim();
+    const ok  = ans.toLowerCase() === String(expected||'').toLowerCase();
+
+    // Subtle result tag + back replaces front (like MC)
+    const tag = `<div class="result-tag ${ok?'correct':'incorrect'}" aria-live="polite">${ok?'Correct':'Incorrect'}</div>`;
+    if(row){
+      qEl.innerHTML = tag + backHTML(row);
+      const pb = document.getElementById('play-tts'); if(pb){ pb.onclick = ()=>playTTS(row.pronunciation); }
+      playTTS(row.pronunciation);  // autoplay after user interaction
+    }else{
+      qEl.innerHTML = tag + (card.back || '(no back)');
+    }
+
+    // Lock input; show Next
+    inp.disabled = true;
+    nxt.style.display = 'inline-block';
+
+    // SRS bookkeeping (no auto-advance)
+    if(typeof schedule==='function') schedule(card, ok ? 'Good' : 'Again');
+    if(ok && typeof bumpStreak==='function') bumpStreak();
+    if(typeof buildQueue==='function') buildQueue();
+  };
+
+  // Next → advance & re-ask
+  nxt.onclick = ()=>{
+    // Maintain your currentIndex policy (only if you use SRS queue)
+    if(Array.isArray(reviewQueue) && reviewQueue.length){
+      currentIndex = Math.min(currentIndex ?? 0, Math.max(0, reviewQueue.length - 1));
+    } else {
+      currentIndex = null;
+    }
+    // Unlock and refresh
+    inp.disabled = false;
+    nextTyping();
+  };
+}
+
+// ---- Initialize Typing: call on load and when Typing tab selected ----
+document.addEventListener('DOMContentLoaded', ()=>{
+  // If your app uses a tab system, Typing might start hidden; still safe to prep the first card
+  try { nextTyping(); } catch {}
+});
+
+// If your page has a tab button with id="tab-typing", wire it to refresh Typing when shown
+document.getElementById('tab-typing')?.addEventListener('click', ()=>{
+  nextTyping();
+});
 
   // ===== Helpers =====
-  function shuffle(a){ return a.slice().sort(()=>Math.random()-0.5); }
   const uid=()=>Math.random().toString(36).slice(2)+Date.now().toString(36);
 
   // ===== Import/Export =====
@@ -440,13 +627,16 @@ document.getElementById('btn-good').onclick  = ()=>rate('Good');
   document.getElementById('import-json')?.addEventListener('click', ()=>{ const f=$('import-json-file').files[0]; if(!f) return alert('Choose a file.'); f.text().then(txt=>{ try{ decks=JSON.parse(txt); saveAll(decks); loadAllCards(); buildQueue(); showFlash(); summarizeStats(); alert('Imported!'); }catch(e){ alert('Invalid JSON.'); } }); });
 
   // ===== Tabs =====
-  document.querySelectorAll('[role="tab"]').forEach(tab=>{tab.addEventListener('click',()=>{document.querySelectorAll('.tabpanel').forEach(p=>p.setAttribute('aria-hidden','true')); document.getElementById('panel-'+tab.dataset.panel).setAttribute('aria-hidden','false'); document.querySelectorAll('[role="tab"]').forEach(t=>t.setAttribute('aria-selected','false')); tab.setAttribute('aria-selected','true'); if(tab.dataset.panel==='mc') nextMC(); if(tab.dataset.panel==='typing') nextTyping(); if(tab.dataset.panel==='flash') showFlash(); if(tab.dataset.panel==='stats') summarizeStats();});});
-
-// ========= Bootstrap (load CSV → queue → first front) =========
-(async function(){
-
-})();
-
+  document.querySelectorAll('[role="tab"]').forEach(tab=>{tab.addEventListener('click',()=>{
+    document.querySelectorAll('.tabpanel').forEach(p=>p.setAttribute('aria-hidden','true'));
+    document.getElementById('panel-'+tab.dataset.panel).setAttribute('aria-hidden','false');
+    document.querySelectorAll('[role="tab"]').forEach(t=>t.setAttribute('aria-selected','false'));
+    tab.setAttribute('aria-selected','true');
+    if(tab.dataset.panel==='mc') nextMC();
+    if(tab.dataset.panel==='typing') nextTyping();
+    if(tab.dataset.panel==='flash') showFlash();
+    if(tab.dataset.panel==='stats') summarizeStats();
+  });});
 
   // ===== Bootstrap: load default CSV into a deck on first run =====
   (async function(){
@@ -455,8 +645,9 @@ document.getElementById('btn-good').onclick  = ()=>rate('Good');
       if(seed && seed.length){ const name='Hakka Basics (seed)'; decks[name]={ name, createdAt:Date.now(), cards: rowsToCards(seed) }; saveAll(decks); }
     }
     setLife(getLife()); setSession(0);
+    setLifeVocab(getLifeVocab());     // paint from storage
+    setSessionVocab(0);               // new session starts at 0
     loadAllCards();
-      deck = await loadDefaultCSV();
     buildQueue(); showFlash(); summarizeStats();
   })();
   </script>
