@@ -256,10 +256,10 @@
   function colorizeCharacters(chars, pron){const tones=extractTones(pron); const out=[]; for(let i=0;i<chars.length;i++){out.push(toneSpan(chars[i], tones[i%tones.length]||'2'));} return out.join('');}
   function convertToneNumbersToDiacritics(pron){return pron.replace(/([A-Za-z]+)([1-6])/g,(m,syl,t)=>{const mark=TONE_DIACRITICS[t]||'';const vs=[...syl].map((c,i)=>'aeiouAEIOU'.includes(c)?i:-1).filter(i=>i>=0);let idx=vs.length>=2?vs[vs.length-2]:(vs[0]??-1);if(idx>=0){syl=syl.slice(0,idx+1)+mark+syl.slice(idx+1);}return toneSpan(syl,t);});}
 
-  // ===== TTS (same API as your Anki builder) =====
+  // ===== TTS (https://hkilang.github.io/TTS/) =====
   const TTS_API_URL = "https://Chaak2.pythonanywhere.com/TTS/hakka";
   function playTTS(pron){
-    const url = `${TTS_API_URL}/${encodeURIComponent((pron||'').trim())}?voice=male&speed=1`;
+    const url = `${TTS_API_URL}/${encodeURIComponent((pron||'').trim())}?voice=male&speed=0.5`;
     new Audio(url).play().catch(()=>{});
   }
 
