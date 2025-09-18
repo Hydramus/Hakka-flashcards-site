@@ -77,7 +77,25 @@
     }
     .result-tag.correct{ color:#16a34a; border-color:#16a34a22; background:rgba(22,163,74,.08); }
     .result-tag.incorrect{ color:#ef4444; border-color:#ef444422; background:rgba(239,68,68,.08); }
+/* Reviewing table */
+    #rev-list table{
+      width:100%; border-collapse:collapse; font-size:16px;
+    }
+    #rev-list thead th{
+      text-align:left; padding:8px 10px; border-bottom:1px solid var(--line);
+      font-weight:700; letter-spacing:.2px;
+    }
+    #rev-list tbody td{
+      padding:8px 10px; border-bottom:1px solid var(--line); vertical-align:top;
+    }
+    #rev-list tbody tr:last-child td{ border-bottom:none; }
 
+    /* keep typography consistent with your screenshot */
+    #rev-list .rev-hakka{ font-size:28px; font-weight:800; line-height:1.05; }
+    #rev-list .rev-pron{ font-size:18px; }
+    #rev-list .rev-pron .play{ margin-left:8px; }
+    #rev-list .rev-acc{ width:120px; text-align:right; white-space:nowrap; }
+    #rev-list .rev-due{ width:120px; text-align:right; white-space:nowrap; color:var(--muted); }
   </style>
   
 </head>
@@ -86,7 +104,7 @@
     <header>
       <div>
         <h1>Fui Yong Hakka — Study</h1>
-        <div class="subtitle">Local save • CSV default deck • Flashcards / MC / Typing</div>
+        <div class="subtitle">Stores your "progress" in your browser • Flashcards / MC / Typing</div>
       </div>
       <div class="row">
         <div class="pill" id="streak-session">Session: 0</div>
@@ -100,8 +118,10 @@
         <button role="tab" id="tab-flash" aria-selected="true" data-panel="flash">Flashcards</button>
         <button role="tab" id="tab-mc" data-panel="mc">Multiple Choice</button>
         <button role="tab" id="tab-typing" data-panel="typing">Typing</button>
+        <button role="tab" id="tab-review" data-panel="review">Reviewing</button>
         <button role="tab" id="tab-stats" data-panel="stats">Stats</button>
         <button role="tab" id="tab-manage" data-panel="manage">Import/Export</button>
+        <button role="tab" id="tab-vocab" data-panel="vocab">Vocabulary</button>
       </div>
 
       <!-- FLASHCARDS -->
@@ -144,6 +164,25 @@
         <div id="typing-feedback" class="small" style="margin-top:6px;text-align:center"></div>
         <button id="typing-next" class="btn" style="display:none;margin-top:10px">Next</button>
       </section>
+
+
+      <!-- REVIEWING (like Flashcards but always shows back) -->
+       <section class="tabpanel" id="panel-review" aria-hidden="true" aria-labelledby="tab-review">
+          <div class="row" style="gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
+            <div class="pill">Due Today: <span id="rev-due-count">0</span></div>
+            <div class="pill">Learned: <span id="rev-learned-count">0</span></div>
+            <div class="pill">Mistakes: <span id="rev-mistake-count">0</span></div>
+
+            <label class="small" style="margin-left:8px">Show:</label>
+            <select id="rev-filter">
+              <option value="due" selected>Due Today</option>
+              <option value="learned">Learned</option>
+              <option value="mistakes">Mistakes</option>
+            </select>
+          </div>
+
+          <div id="rev-list" class="card" style="padding:12px"></div>
+        </section>
 
       <!-- STATS -->
       <section class="tabpanel" id="panel-stats" aria-hidden="true" aria-labelledby="tab-stats">
@@ -215,6 +254,16 @@
       card.reps+=1;
     }
     card.due = now() + card.interval*DAY;
+  }
+
+  // ===== Record per-card study stats =====
+  function updateCardStats(card, ok){
+    if(card.firstSeenAt==null) card.firstSeenAt = now();
+    card.lastSeenAt = now();
+    card.seenCount  = (card.seenCount||0) + 1;
+    if(ok===true)  card.correctCount   = (card.correctCount||0) + 1;
+    if(ok===false) card.incorrectCount = (card.incorrectCount||0) + 1;
+    card.studied = true;
   }
 
   // ===== Storage =====
@@ -346,11 +395,115 @@
   if($('vocab-life')) $('vocab-life').textContent = getLifeVocab();
 }
 
-// ===== Flashcards (replace front with back, autoplay TTS, Next to advance) =====
+function timeUntil(ts){
+  if(!ts) return '—';
+  const d = ts - now();
+  if(d <= 0) return 'due now';
+  const mins = Math.round(d/60000);
+  if(mins < 60) return `in ${mins}m`;
+  const hrs = Math.round(mins/60);
+  if(hrs < 48) return `in ${hrs}h`;
+  const days = Math.round(hrs/24);
+  return `in ${days}d`;
+}
+
+function renderReview(){
+  if(!currentDeck){
+    $('rev-list').innerHTML = '<div class="small">No deck</div>';
+    $('rev-due-count').textContent='0';
+    $('rev-learned-count').textContent='0';
+    $('rev-mistake-count').textContent='0';
+    return;
+  }
+  const cs = currentDeck.cards;
+  const nowt = now();
+
+  const due      = cs.filter(c=>(c.reps||0)>0 && (c.due||0)<=nowt);
+  const learned  = cs.filter(c=>(c.reps||0)>0);
+  const mistakes = cs.filter(c=>(c.incorrectCount||0)>0);
+
+  $('rev-due-count').textContent      = due.length;
+  $('rev-learned-count').textContent  = learned.length;
+  $('rev-mistake-count').textContent  = mistakes.length;
+
+  const filter = $('rev-filter').value;
+  let list = filter==='due' ? due : (filter==='learned' ? learned : mistakes);
+
+  // sort: due soonest first; otherwise by lastSeen desc
+  list = list.slice().sort((a,b)=>{
+    const ad = a.due||0, bd = b.due||0;
+    if(filter==='due') return ad - bd;
+    return (b.lastSeenAt||0) - (a.lastSeenAt||0);
+  });
+
+  if(list.length===0){
+    $('rev-list').innerHTML = '<div class="small">Nothing here yet.</div>';
+    return;
+  }
+
+  // Build 6-column table
+  let html = `
+    <table>
+      <thead>
+        <tr>
+          <th>普通中文</th>
+          <th>客家汉字</th>
+          <th>Hakka Pronunciation</th>
+          <th>English Definition</th>
+          <th class="rev-acc">✓ / ✗</th>
+          <th class="rev-due">Due in</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  html += list.map(card=>{
+    let row; try{ row = JSON.parse(card.back); } catch { row = null; }
+    if(!row) return '';
+    const charHTML = `<div class="rev-hakka">${colorizeCharacters(row.hakka_chars,row.pronunciation)}</div>`;
+    const pronHTML = `
+      <div class="rev-pron">
+        ${convertToneNumbersToDiacritics(row.pronunciation)}
+        <button class="btn play" data-pron="${encodeURIComponent(row.pronunciation)}" title="Play audio">▶</button>
+      </div>`;
+
+    return `
+      <tr>
+        <td>${row.mandarin || ''}</td>
+        <td>${charHTML}</td>
+        <td>${pronHTML}</td>
+        <td>${row.english || ''}</td>
+        <td class="rev-acc">${(card.correctCount||0)}&nbsp;✓&nbsp;/&nbsp;${(card.incorrectCount||0)}&nbsp;✗</td>
+        <td class="rev-due">${timeUntil(card.due)}</td>
+      </tr>
+    `;
+  }).join('');
+
+  html += `</tbody></table>`;
+  $('rev-list').innerHTML = html;
+
+  // Delegate click for TTS
+  $('rev-list').onclick = (e)=>{
+    const btn = e.target.closest('button.play');
+    if(!btn) return;
+    const raw = decodeURIComponent(btn.getAttribute('data-pron')||'');
+    if(raw) playTTS(raw);
+  };
+}
+
+// when filter changes, re-render
+$('rev-filter').addEventListener('change', renderReview);
+
+// when the Reviewing tab is opened
+document.getElementById('tab-review')?.addEventListener('click', renderReview);
+
+// ===== Flashcards (Anki-style ratings + SRS + autoplay TTS) =====
 function showFlash(){
-  const btnShow=$('btn-show'); const rateIds=['btn-again','btn-hard','btn-good','btn-easy'];
-  const btnNext=$('flash-next');
-  if(currentIndex==null){
+  const btnShow = $('btn-show');
+  const btnNext = $('flash-next'); // we’ll keep it hidden; ratings handle advance
+  const rateIds = ['btn-again','btn-hard','btn-good','btn-easy'];
+
+  if(currentIndex==null || !currentDeck || !currentDeck.cards?.length){
     $('flash-front').textContent='All done!';
     $('flash-back').style.display='none';
     btnShow.style.display='inline-block';
@@ -358,12 +511,15 @@ function showFlash(){
     rateIds.forEach(id=>$(id).style.display='none');
     return;
   }
-  const card=currentDeck.cards[reviewQueue[currentIndex]];
-  let row; try{row=JSON.parse(card.back);}catch{row=null;}
-  $('flash-front').innerHTML=row? frontHTML(row) : card.front;
 
-  // ensure only Show is visible at first
+  const card = currentDeck.cards[reviewQueue[currentIndex]];
+  let row; try{ row = JSON.parse(card.back); } catch { row = null; }
+
+  // FRONT (Hakka chars + pron only, with tone colors)
+  $('flash-front').innerHTML = row ? frontHTML(row) : (card.front || '');
   $('flash-back').style.display='none';
+
+  // Only Show visible initially
   btnShow.style.display='inline-block';
   btnNext.style.display='none';
   rateIds.forEach(id=>$(id).style.display='none');
@@ -371,47 +527,83 @@ function showFlash(){
 
 function revealFlash(){
   if(currentIndex==null) return;
-  const btnShow=$('btn-show'); const btnNext=$('flash-next');
-  const rateIds=['btn-again','btn-hard','btn-good','btn-easy'];
+  const btnShow = $('btn-show');
+  const btnNext = $('flash-next'); // not used; stays hidden
+  const rateIds = ['btn-again','btn-hard','btn-good','btn-easy'];
 
-  const card=currentDeck.cards[reviewQueue[currentIndex]];
-  let row; try{row=JSON.parse(card.back);}catch{row=null;}
+  const card = currentDeck.cards[reviewQueue[currentIndex]];
+  let row; try{ row = JSON.parse(card.back); } catch { row = null; }
 
-  // === Replace FRONT with BACK (same as MC) ===
+  // Replace FRONT with BACK (like MC) and wire/play TTS
   if(row){
     $('flash-front').innerHTML = backHTML(row);
-    const pb=$('play-tts'); if(pb){ pb.onclick=()=>playTTS(row.pronunciation); }
-    playTTS(row.pronunciation); // autoplay on reveal
+    const pb = $('play-tts'); 
+    if(pb){ pb.onclick = () => playTTS(row.pronunciation); }
+    playTTS(row.pronunciation);   // autoplay after Show click
   } else {
     $('flash-front').textContent = card.back || '(no back)';
   }
 
-  // Hide the separate back container & rating buttons; show Next
   $('flash-back').style.display='none';
   btnShow.style.display='none';
-  rateIds.forEach(id=>$(id).style.display='none');
-  btnNext.style.display='inline-block';
+  btnNext.style.display='none';
+  rateIds.forEach(id=>$(id).style.display='inline-block');
 }
 
-function nextFlash(){
+// Advance the queue after rating + reschedule
+function rateFlash(rating){
   if(currentIndex==null) return;
-  const card=currentDeck.cards[reviewQueue[currentIndex]];
 
-  // Default schedule as 'Good' to move along like MC’s Next
-  schedule(card,'Good'); bumpStreak();
+  const idx   = reviewQueue[currentIndex];
+  const card  = currentDeck.cards[idx];
 
-  // advance queue
-  reviewQueue.splice(currentIndex,1);
-  currentIndex = reviewQueue.length? Math.min(currentIndex, reviewQueue.length-1) : null;
+  // SRS math
+  schedule(card, rating);
 
+  // Book-keeping for Reviewing tab:
+  // Treat Again as incorrect, Hard/Good/Easy as correct.
+  updateCardStats(card, rating==='Again' ? false : true);
+
+  // Streak bumps only on a “pass” (your previous convention)
+  if(rating!=='Again') bumpStreak();
+
+  // Remove from today’s queue and advance
+  reviewQueue.splice(currentIndex, 1);
+  currentIndex = reviewQueue.length ? Math.min(currentIndex, reviewQueue.length-1) : null;
+
+  // Persist + rebuild derived stats/queue labels
+  saveAll(decks);
   buildQueue();
+  summarizeStats();
+
+  // Show next
   showFlash();
 }
 
 // ===== Wire Flash buttons =====
-$('btn-show').onclick = revealFlash;
-$('flash-next').onclick = nextFlash;
-//  if you want to keep them available, we can show them together with Next.)
+$('btn-show').onclick  = revealFlash;
+$('btn-again').onclick = ()=>rateFlash('Again');
+$('btn-hard').onclick  = ()=>rateFlash('Hard');
+$('btn-good').onclick  = ()=>rateFlash('Good');
+$('btn-easy').onclick  = ()=>rateFlash('Easy');
+
+// Optional: keyboard shortcuts like Anki (1–4)
+document.addEventListener('keydown', (e)=>{
+  const panelVisible = document.getElementById('panel-flash')?.getAttribute('aria-hidden')==='false';
+  if(!panelVisible || currentIndex==null) return;
+  if(e.key===' ' || e.key==='Enter'){ // Space/Enter to Show when hidden
+    const showVisible = $('btn-show').style.display !== 'none';
+    if(showVisible){ e.preventDefault(); revealFlash(); }
+    return;
+  }
+  // 1..4 map to Again/Hard/Good/Easy if rating buttons visible
+  const ratedVisible = $('btn-again').style.display !== 'none';
+  if(!ratedVisible) return;
+  if(e.key==='1'){ e.preventDefault(); rateFlash('Again'); }
+  if(e.key==='2'){ e.preventDefault(); rateFlash('Hard');  }
+  if(e.key==='3'){ e.preventDefault(); rateFlash('Good');  }
+  if(e.key==='4'){ e.preventDefault(); rateFlash('Easy');  }
+});
 
   // ===== Multiple Choice (hold after reveal, Next to advance, TTS autoplay) =====
 
@@ -478,8 +670,11 @@ $('flash-next').onclick = nextFlash;
 
         // Schedule / streak / queue — no auto-advance
         schedule(correct, ok ? 'Good' : 'Again');
+        updateCardStats(correct, ok);
         if (ok) bumpStreak();
         buildQueue();
+
+        saveAll(decks);
 
         btnNext.style.display = 'inline-block';
         };
@@ -564,6 +759,8 @@ function nextTyping(){
     const ans = inp.value.trim();
     const ok  = ans.toLowerCase() === String(expected||'').toLowerCase();
 
+    updateCardStats(card, ok);  
+
     // Subtle result tag + back replaces front (like MC)
     const tag = `<div class="result-tag ${ok?'correct':'incorrect'}" aria-live="polite">${ok?'Correct':'Incorrect'}</div>`;
     if(row){
@@ -582,6 +779,7 @@ function nextTyping(){
     if(typeof schedule==='function') schedule(card, ok ? 'Good' : 'Again');
     if(ok && typeof bumpStreak==='function') bumpStreak();
     if(typeof buildQueue==='function') buildQueue();
+    saveAll(decks);
   };
 
   // Next → advance & re-ask
@@ -636,6 +834,7 @@ document.getElementById('tab-typing')?.addEventListener('click', ()=>{
     if(tab.dataset.panel==='typing') nextTyping();
     if(tab.dataset.panel==='flash') showFlash();
     if(tab.dataset.panel==='stats') summarizeStats();
+    if(tab.dataset.panel==='review') renderReview(); 
   });});
 
   // ===== Bootstrap: load default CSV into a deck on first run =====
