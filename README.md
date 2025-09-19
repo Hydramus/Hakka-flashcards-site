@@ -19,6 +19,17 @@ A web-based flashcard application for learning Hong Kong Fui Yong Hakka vocabula
   - Tone 5: Orange
   - Tone 6: Yellow
 - **Diacritics**: Pronunciation displays with proper tone diacritics
+
+- **Tone Diacritic Conversion**:  
+  Converts tone numbers (e.g., `ngai2`) into diacritic forms (e.g., `ngái`) using mappings inspired by the "香港客家话研究" textbook.
+
+|           | 陰平    | 陽平   | 上     | 去     | 陰入   | 陽入   |
+|-----------|---------|--------|--------|--------|--------|--------|
+| 調值      | 13*/35  | 11     | 31     | 53/55  | 31     | 53     |
+| 例字      | 參芬聲  | 蠶焚成 | 慘粉省 | 杉份盛 | 插忽析 | 雜佛石 |
+| 標調符號  | ˊ       | ̄      | ̌       | ˋ      | ̌      | ˋ      |
+| 標調數字  | 1       | 2      | 3      | 4      | 5      | 6      |
+
 - **Dark/Light Mode**: Toggle between themes for comfortable studying
 
 ### 📊 Progress Tracking
@@ -26,6 +37,7 @@ A web-based flashcard application for learning Hong Kong Fui Yong Hakka vocabula
 - **Lifetime Counter**: Total vocabulary learned across all sessions
 - **Statistics**: View due cards, new cards, review cards, and total vocabulary
 - **SRS Scheduling**: Intelligent spaced repetition based on your performance
+- **Progress**: Progress is all stored in your local browser cache so it will reset if you move to another computer or browser
 
 ### 📁 Data Management
 - **CSV Import**: Import vocabulary from CSV files
@@ -163,6 +175,18 @@ To contribute vocabulary or improvements:
 1. Fork the repository
 2. Add vocabulary to the CSV file or make code improvements
 3. Submit a pull request
+
+## References
+
+**Source Material**:  
+"香港客家话研究" by **劉鎮發 (liu2 zin3 fat5)** – provides the tone and language basis for the diacritic conversion.
+
+**Fui Yong Hakka TTS Model & API**:
+
+- **Hong Kong Hakka TTS**: [https://hkilang.github.io/TTS/](https://hkilang.github.io/TTS/)
+- **Source Code**: [https://github.com/hkilang/TTS/tree/main](https://github.com/hkilang/TTS/tree/main)
+- **TTS API**: [https://github.com/hkilang/TTS-API/tree/main](https://github.com/hkilang/TTS-API/tree/main)
+- Special thanks to https://github.com/graphemecluster for his assistance, for pointing me in the right direction, and for creating the TTS application.
 
 ## License
 
