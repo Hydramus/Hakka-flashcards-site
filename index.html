@@ -58,7 +58,7 @@ body.light input[type="text"], body.light textarea, body.light select{ backgroun
 }
 .pill{
   padding:6px 10px; border-radius:999px; background:#0b0f18;
-  border:1px solid var(--line); color:var(--muted); font-size:24px;
+  border:1px solid var(--line); color:var(--muted);
 }
 body.light .pill{ background:#eef2f7; }
 
@@ -135,6 +135,38 @@ body.light .tabbar button[aria-selected="true"]{ background:#dbeafe; }
 .result-tag.correct  { color:#16a34a; border-color:#16a34a22; background:rgba(22,163,74,.08); }
 .result-tag.incorrect{ color:#ef4444; border-color:#ef444422; background:rgba(239,68,68,.08); }
 
+/* =========================
+   HELP MODAL (all tabs)
+   ========================= */
+.modal[aria-hidden="true"] { display:none; }
+.modal[aria-hidden="false"] { display:block; }
+
+.modal {
+  position: fixed; inset: 0; z-index: 1000;
+}
+.modal-backdrop {
+  position:absolute; inset:0; background:rgba(0,0,0,.45);
+  backdrop-filter: blur(2px);
+}
+.modal-content {
+  position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+  width:min(880px, calc(100% - 32px));
+  max-height:80vh; overflow:auto;
+  background:var(--card); color:var(--ink);
+  border:1px solid var(--line); border-radius:14px; padding:16px 18px 18px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.35);
+}
+.modal-close {
+  position:absolute; top:8px; right:10px;
+  background:#141a27; color:var(--ink); border:1px solid var(--line);
+  border-radius:10px; width:36px; height:36px; cursor:pointer;
+  line-height:1; font-size:20px;
+}
+body.light .modal-close { background:#f8fafc; }
+.modal h3 { margin:12px 0 6px; }
+.modal ul { margin:6px 0 12px 18px; }
+
+
   </style>
   
 </head>
@@ -144,11 +176,11 @@ body.light .tabbar button[aria-selected="true"]{ background:#dbeafe; }
       <div>
         <h1>Hong Kong Fui Yong Hakka — Study</h1>
         <div class="subtitle"> • Flashcards / Multiple Choice / Typing</div>
-      </div>
       <div class="row">
         <div class="pill" id="streak-session">Session: 0</div>
         <div class="pill" id="streak-life">Lifetime: 0</div>
         <button id="theme-toggle" class="btn" title="Toggle dark mode">Dark Mode</button>
+        <button id="help-btn" class="btn" title="How to use">Help</button>
       </div>
     </header>
 
@@ -272,6 +304,91 @@ body.light .tabbar button[aria-selected="true"]{ background:#dbeafe; }
     <footer class="small" style="margin-top:14px;opacity:.8">Stores your "progress" in your browser. Nothing is stored online.</footer>
   </div>
 
+  
+    <!-- Help modal -->
+    <div id="help-modal" class="modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="help-title">
+      <div class="modal-backdrop"></div>
+      <div class="modal-content" role="document">
+        <button class="modal-close" aria-label="Close">×</button>
+        <h2 id="help-title" style="margin-top:0">How this site works</h2>
+
+        <div class="small" style="margin-bottom:14px; color:var(--muted)">
+          Cards load from your CSV (default: <code>Hakka Vocabulary.csv</code>). Progress is saved locally in your browser.
+        </div>
+
+        <h3>Flashcards</h3>
+        <ul class="small">
+          <li>Press <strong>Show</strong> to reveal the back. Audio auto-plays; use ▶ to replay.</li>
+          <li>Rate with <strong>Again / Hard / Good / Easy</strong> to schedule with SRS (like Anki).</li>
+          <li>Tone colors: ① ˊ red, ②   blue, ③   green, ④  ˋ  purple, ⑤   orange, ⑥ ˋ yellow;</li>
+          <li>The pinyim shows diacritics</li>
+        </ul>
+
+        <h3>Multiple Choice</h3>
+        <ul class="small">
+          <li>Choose the correct English (or Mandarin if available). After selection, the back replaces the front, audio auto-plays.</li>
+          <li>Click <strong>Next</strong> to move on. Correct answers increment your streak.</li>
+        </ul>
+
+        <h3>Typing</h3>
+        <ul class="small">
+          <li>Select answer mode: <strong>English / Mandarin (use Chinese characters) / Hakka pronunciation (use tone number notation)</strong>.</li>
+          <li>Type your answer and press <strong>Enter</strong>. The back replaces the front; ▶ replays audio.</li>
+          <li>Click <strong>Next</strong> to proceed.</li>
+        </ul>
+
+        <h3>Reviewing</h3>
+        <ul class="small">
+          <li>Filter by <strong>Due Today</strong>, <strong>Learned</strong>, or <strong>Mistakes</strong>.</li>
+          <li>Table shows 普通中文, 客家汉字 (tone-colored), Hakka pronunciation (with ▶), English, ✓/✗, and “Due in”.</li>
+        </ul>
+
+        <h3>Vocabulary</h3>
+        <ul class="small">
+          <li>Search across <strong>English / Hakka pronunciation / 普通中文 / 客家汉字</strong>.</li>
+          <li>Each row includes a ▶ button for TTS.</li>
+        </ul>
+
+        <h3>Import / Export</h3>
+        <ul class="small">
+          <li>Import CSV using header: <code>普通中文,客家汉字,Hakka Pronunciation,English Definition</code>.</li>
+          <li>Backup/restore your local progress via JSON.</li>
+        </ul>
+
+        <h3>Dark Mode & Streaks</h3>
+        <ul class="small">
+          <li>Toggle light/dark via the <strong>Dark Mode</strong> button.</li>
+          <li>Session/Lifetime counts mirror your correct answers; SRS due counts appear under <strong>Vocabulary</strong>.</li>
+        </ul>
+
+        <hr style="margin:16px 0; border:none; border-top:1px solid var(--line)" />
+
+          <h2 style="margin:0 0 10px; font-weight:800;">References</h2>
+
+          <p style="margin:0 0 8px; color:var(--muted);">
+            <strong>Source Material</strong><br />
+            「香港客家话研究」 by <strong>劉鎮發 (liu2 zin3 fat5)</strong>  – provides the tone and language basis for the diacritic conversion.
+          </p>
+
+          <p style="margin:10px 0 6px;"><strong>Fui Yong Hakka TTS Model &amp; API</strong>:</p>
+          <ul style="margin:0; padding-left:18px; color:var(--muted)">
+            <li>
+              <strong>Hong Kong Hakka TTS</strong>:
+              <a href="https://hkilang.github.io/TTS/" target="_blank" rel="noopener">https://hkilang.github.io/TTS/</a>
+            </li>
+            <li>
+              <strong>Source Code</strong>:
+              <a href="https://github.com/hkilang/TTS/tree/main" target="_blank" rel="noopener">https://github.com/hkilang/TTS/tree/main</a>
+            </li>
+            <li>
+              <strong>TTS API</strong>:
+              <a href="https://github.com/hkilang/TTS-API/tree/main" target="_blank" rel="noopener">https://github.com/hkilang/TTS-API/tree/main</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
   <script>
   // ===== Theme toggle (using body.light, preserving original look) =====
   (function(){
@@ -285,6 +402,25 @@ body.light .tabbar button[aria-selected="true"]{ background:#dbeafe; }
       localStorage.setItem('theme', isLight? 'light':'dark');
       btn.textContent=isLight? 'Dark Mode':'Light Mode';
     };
+  })();
+
+  // ===== Help modal wiring =====
+  (function(){
+    const modal   = document.getElementById('help-modal');
+    const openBtn = document.getElementById('help-btn');
+    const closeBtn= modal.querySelector('.modal-close');
+    const backdrop= modal.querySelector('.modal-backdrop');
+
+    const open = ()=>{ modal.setAttribute('aria-hidden','false'); document.body.style.overflow='hidden'; };
+    const close= ()=>{ modal.setAttribute('aria-hidden','true');  document.body.style.overflow=''; };
+
+    openBtn?.addEventListener('click', open);
+    closeBtn?.addEventListener('click', close);
+    backdrop?.addEventListener('click', close);
+
+    document.addEventListener('keydown', (e)=>{
+      if(e.key==='Escape' && modal.getAttribute('aria-hidden')==='false'){ close(); }
+    });
   })();
 
   // ===== SRS scheduling =====
