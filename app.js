@@ -1,7 +1,60 @@
 // Core application script for Hakka flashcards.
 // Refactored for readability (no logic changes).
 
+// ===== Mobile & Touch Enhancements =====
+
+// Prevent zoom on double-tap for iOS
+document.addEventListener('touchstart', {}, { passive: true });
+
+// Add touch feedback for buttons
+document.addEventListener('touchstart', (e) => {
+  if (e.target.closest('.btn, .tabbar button')) {
+    e.target.closest('.btn, .tabbar button').style.opacity = '0.7';
+  }
+}, { passive: true });
+
+document.addEventListener('touchend', (e) => {
+  if (e.target.closest('.btn, .tabbar button')) {
+    setTimeout(() => {
+      e.target.closest('.btn, .tabbar button').style.opacity = '';
+    }, 150);
+  }
+}, { passive: true });
+
+// Improve mobile keyboard handling for typing input
+function setupMobileKeyboard() {
+  const typingInput = document.getElementById('typing-input');
+  if (!typingInput) return;
+  
+  // Prevent viewport zoom on focus (iOS)
+  typingInput.addEventListener('focus', () => {
+    const viewport = document.querySelector('meta[name="viewport"]');
+    if (viewport) {
+      viewport.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1');
+    }
+  });
+  
+  typingInput.addEventListener('blur', () => {
+    const viewport = document.querySelector('meta[name="viewport"]');
+    if (viewport) {
+      viewport.setAttribute('content', 'width=device-width, initial-scale=1');
+    }
+  });
+}
+
 // ===== Theme toggle =====
+(function(){
+  const btn=document.getElementById('theme-toggle');
+  const saved=localStorage.getItem('theme');
+  if(saved==='light') document.body.classList.add('light');
+  btn.textContent=document.body.classList.contains('light')? 'Dark Mode':'Light Mode';
+  btn.onclick=()=>{
+    document.body.classList.toggle('light');
+    const isLight=document.body.classList.contains('light');
+    localStorage.setItem('theme', isLight? 'light':'dark');
+    btn.textContent=isLight? 'Dark Mode':'Light Mode';
+  };
+})();
 (function(){
   const btn=document.getElementById('theme-toggle');
   const saved=localStorage.getItem('theme');
@@ -288,60 +341,100 @@ function renderReview() {
     return;
   }
   
-  // Build HTML table
-  let html = `
-    <table>
-      <thead>
-        <tr>
-          <th>普通中文</th>
-          <th>客家汉字</th>
-          <th>Hakka Pronunciation</th>
-          <th>English Definition</th>
-          <th class="rev-acc">✓ / ✗</th>
-          <th class="rev-due">Due in</th>
-        </tr>
-      </thead>
-      <tbody>
-  `;
+  // Check if mobile layout should be used
+  const isMobile = window.innerWidth <= 768;
   
-  // Generate table rows for each card
-  html += list.map(card => {
-    let row;
-    try {
-      row = JSON.parse(card.back);
-    } catch {
-      row = null;
-    }
+  if (isMobile) {
+    // Mobile card-based layout
+    let html = '<div class="mobile-card-list">';
     
-    if (!row) return '';
+    html += list.map(card => {
+      let row;
+      try {
+        row = JSON.parse(card.back);
+      } catch {
+        row = null;
+      }
+      
+      if (!row) return '';
+      
+      return `
+        <div class="mobile-review-card">
+          <div class="char-row">
+            <div class="hakka-chars">${colorizeCharacters(row.hakka_chars, row.pronunciation)}</div>
+            <button class="btn play play-btn" data-pron="${encodeURIComponent(row.pronunciation)}" title="Play audio">▶</button>
+          </div>
+          <div class="pronunciation">${convertToneNumbersToDiacritics(row.pronunciation)}</div>
+          <div class="translations">
+            ${row.mandarin ? `<div class="mandarin"><strong>普通中文:</strong> ${row.mandarin}</div>` : ''}
+            <div class="english"><strong>English:</strong> ${row.english || ''}</div>
+          </div>
+          <div class="stats-row">
+            <div class="accuracy">${(card.correctCount || 0)} ✓ / ${(card.incorrectCount || 0)} ✗</div>
+            <div class="due-info">${timeUntil(card.due)}</div>
+          </div>
+        </div>
+      `;
+    }).join('');
     
-    // Format the character display with tone colors
-    const charHTML = `<div class="rev-hakka">${colorizeCharacters(row.hakka_chars, row.pronunciation)}</div>`;
-    
-    // Format pronunciation with play button
-    const pronHTML = `
-      <div class="rev-pron">
-        ${convertToneNumbersToDiacritics(row.pronunciation)}
-        <button class="btn play" data-pron="${encodeURIComponent(row.pronunciation)}" title="Play audio">▶</button>
-      </div>`;
-    
-    // Return complete table row
-    return `
-      <tr>
-        <td>${row.mandarin || ''}</td>
-        <td>${charHTML}</td>
-        <td>${pronHTML}</td>
-        <td>${row.english || ''}</td>
-        <td class="rev-acc">${(card.correctCount || 0)}&nbsp;✓&nbsp;/&nbsp;${(card.incorrectCount || 0)}&nbsp;✗</td>
-        <td class="rev-due">${timeUntil(card.due)}</td>
-      </tr>
+    html += '</div>';
+    $('rev-list').innerHTML = html;
+  } else {
+    // Desktop table layout
+    let html = `
+      <table>
+        <thead>
+          <tr>
+            <th>普通中文</th>
+            <th>客家汉字</th>
+            <th>Hakka Pronunciation</th>
+            <th>English Definition</th>
+            <th class="rev-acc">✓ / ✗</th>
+            <th class="rev-due">Due in</th>
+          </tr>
+        </thead>
+        <tbody>
     `;
-  }).join('');
+    
+    // Generate table rows for each card
+    html += list.map(card => {
+      let row;
+      try {
+        row = JSON.parse(card.back);
+      } catch {
+        row = null;
+      }
+      
+      if (!row) return '';
+      
+      // Format the character display with tone colors
+      const charHTML = `<div class="rev-hakka">${colorizeCharacters(row.hakka_chars, row.pronunciation)}</div>`;
+      
+      // Format pronunciation with play button
+      const pronHTML = `
+        <div class="rev-pron">
+          ${convertToneNumbersToDiacritics(row.pronunciation)}
+          <button class="btn play" data-pron="${encodeURIComponent(row.pronunciation)}" title="Play audio">▶</button>
+        </div>`;
+      
+      // Return complete table row
+      return `
+        <tr>
+          <td>${row.mandarin || ''}</td>
+          <td>${charHTML}</td>
+          <td>${pronHTML}</td>
+          <td>${row.english || ''}</td>
+          <td class="rev-acc">${(card.correctCount || 0)}&nbsp;✓&nbsp;/&nbsp;${(card.incorrectCount || 0)}&nbsp;✗</td>
+          <td class="rev-due">${timeUntil(card.due)}</td>
+        </tr>
+      `;
+    }).join('');
+    
+    html += `</tbody></table>`;
+    $('rev-list').innerHTML = html;
+  }
   
-  html += `</tbody></table>`;
-  
-  // Set the HTML and add click handler for play buttons
-  $('rev-list').innerHTML = html;
+  // Set up click handler for play buttons
   $('rev-list').onclick = (e) => {
     const btn = e.target.closest('button.play');
     if (!btn) return;
@@ -391,53 +484,89 @@ function renderVocabInStats() {
     return;
   }
 
-  // Build HTML table structure
-  let html = `
-    <table>
-      <thead>
-        <tr>
-          <th>普通中文</th>
-          <th>客家汉字</th>
-          <th>Hakka Pronunciation</th>
-          <th>English Definition</th>
-        </tr>
-      </thead>
-      <tbody>
-  `;
+  // Check if mobile layout should be used
+  const isMobile = window.innerWidth <= 768;
   
-  // Generate rows for each card
-  html += list.map(card => {
-    let row;
-    try {
-      row = JSON.parse(card.back);
-    } catch {
-      row = null;
-    }
+  if (isMobile) {
+    // Mobile card-based layout
+    let html = '<div class="mobile-card-list">';
     
-    if (!row) return '';
+    html += list.map(card => {
+      let row;
+      try {
+        row = JSON.parse(card.back);
+      } catch {
+        row = null;
+      }
+      
+      if (!row) return '';
+      
+      return `
+        <div class="mobile-vocab-card">
+          <div class="char-row">
+            <div class="hakka-chars">${colorizeCharacters(row.hakka_chars, row.pronunciation)}</div>
+            <button class="btn play play-btn" data-pron="${encodeURIComponent(row.pronunciation || '')}" title="Play audio">▶</button>
+          </div>
+          <div class="pronunciation">${convertToneNumbersToDiacritics(row.pronunciation)}</div>
+          <div class="translations">
+            ${row.mandarin ? `<div class="mandarin"><strong>普通中文:</strong> ${row.mandarin}</div>` : ''}
+            <div class="english"><strong>English:</strong> ${row.english || ''}</div>
+          </div>
+        </div>
+      `;
+    }).join('');
     
-    // Format characters with tone coloring
-    const charHTML = `<div class="rev-hakka">${colorizeCharacters(row.hakka_chars, row.pronunciation)}</div>`;
-    
-    // Format pronunciation with play button
-    const pronHTML = `
-      <div class="rev-pron">
-        ${convertToneNumbersToDiacritics(row.pronunciation)}
-        <button class="btn play" data-pron="${encodeURIComponent(row.pronunciation || '')}" title="Play audio">▶</button>
-      </div>`;
-    
-    return `
-      <tr>
-        <td>${row.mandarin || ''}</td>
-        <td>${charHTML}</td>
-        <td>${pronHTML}</td>
-        <td>${row.english || ''}</td>
-      </tr>
+    html += '</div>';
+    box.innerHTML = html;
+  } else {
+    // Desktop table layout
+    let html = `
+      <table>
+        <thead>
+          <tr>
+            <th>普通中文</th>
+            <th>客家汉字</th>
+            <th>Hakka Pronunciation</th>
+            <th>English Definition</th>
+          </tr>
+        </thead>
+        <tbody>
     `;
-  }).join('');
-  
-  html += `</tbody></table>`;
-  box.innerHTML = html;
+    
+    // Generate rows for each card
+    html += list.map(card => {
+      let row;
+      try {
+        row = JSON.parse(card.back);
+      } catch {
+        row = null;
+      }
+      
+      if (!row) return '';
+      
+      // Format characters with tone coloring
+      const charHTML = `<div class="rev-hakka">${colorizeCharacters(row.hakka_chars, row.pronunciation)}</div>`;
+      
+      // Format pronunciation with play button
+      const pronHTML = `
+        <div class="rev-pron">
+          ${convertToneNumbersToDiacritics(row.pronunciation)}
+          <button class="btn play" data-pron="${encodeURIComponent(row.pronunciation || '')}" title="Play audio">▶</button>
+        </div>`;
+      
+      return `
+        <tr>
+          <td>${row.mandarin || ''}</td>
+          <td>${charHTML}</td>
+          <td>${pronHTML}</td>
+          <td>${row.english || ''}</td>
+        </tr>
+      `;
+    }).join('');
+    
+    html += `</tbody></table>`;
+    box.innerHTML = html;
+  }
 }
 
 // Event listeners for vocabulary and review functionality
@@ -966,6 +1095,21 @@ document.querySelectorAll('[role="tab"]').forEach(tab => {
   });
 });
 
+// Handle window resize and orientation changes
+window.addEventListener('resize', () => {
+  // Re-render tables/cards when screen size changes
+  setTimeout(() => {
+    const activePanel = document.querySelector('.tabpanel[aria-hidden="false"]');
+    if (activePanel) {
+      if (activePanel.id === 'panel-stats') {
+        renderVocabInStats();
+      } else if (activePanel.id === 'panel-review') {
+        renderReview();
+      }
+    }
+  }, 100); // Small delay to ensure resize is complete
+});
+
 // ===== Bootstrap =====
 
 // Initialize the application
@@ -995,4 +1139,7 @@ document.querySelectorAll('[role="tab"]').forEach(tab => {
   buildQueue();
   showFlash();
   summarizeStats();
+  
+  // Set up mobile enhancements
+  setupMobileKeyboard();
 })();
