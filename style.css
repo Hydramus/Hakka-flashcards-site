@@ -59,9 +59,218 @@ h1 { margin:0; font-size:36px; font-weight:800; letter-spacing:.4px; line-height
 /* Tighten the header row spacing a hair so the right group doesn’t drop */
 header{ display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:14px; }
 
-/* Responsive: remove title/kicker on mobile */
-@media (max-width:520px){ .kicker{ display:none; } 
+/* =========================
+   RESPONSIVE DESIGN
+   ========================= */
 
+/* Mobile-first responsive breakpoints */
+@media (max-width: 768px) {
+  /* Container and spacing adjustments */
+  .container { 
+    padding: 16px; 
+    max-width: 100%;
+  }
+  
+  /* Header adjustments */
+  header { 
+    flex-direction: column; 
+    align-items: flex-start; 
+    gap: 12px; 
+  }
+  
+  /* Hide kicker on small screens */
+  .kicker { display: none; }
+  
+  /* Make title smaller on mobile */
+  h1 { 
+    font-size: 28px; 
+    line-height: 1.2; 
+  }
+  
+  /* Tab bar - stack on very small screens */
+  .tabbar { 
+    gap: 6px; 
+    justify-content: center;
+  }
+  
+  .tabbar button {
+    padding: 8px 12px;
+    font-size: 14px;
+    flex: 1;
+    min-width: 0;
+    text-align: center;
+  }
+  
+  /* Card content typography adjustments */
+  .char { font-size: 42px; }
+  .label { font-size: 24px; }
+  .pron { font-size: 32px; }
+  .big { font-size: 32px; }
+  
+  /* Button sizing */
+  .btn {
+    padding: 12px 16px;
+    font-size: 16px;
+    min-height: 44px; /* Touch-friendly */
+  }
+  
+  /* Tables - better mobile approach */
+  #panel-stats table, #rev-list table {
+    display: none; /* Hide tables on mobile */
+  }
+  
+  /* Mobile card-based layout for vocab and review */
+  .mobile-card-list {
+    display: block;
+  }
+  
+  .mobile-vocab-card, .mobile-review-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    position: relative;
+  }
+  
+  .mobile-vocab-card .char-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  
+  .mobile-vocab-card .hakka-chars {
+    font-size: 24px;
+    font-weight: 700;
+  }
+  
+  .mobile-vocab-card .play-btn {
+    min-width: 36px;
+    min-height: 36px;
+    border-radius: 50%;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+  }
+  
+  .mobile-vocab-card .pronunciation {
+    font-size: 18px;
+    margin: 4px 0;
+    color: var(--muted);
+  }
+  
+  .mobile-vocab-card .translations {
+    margin-top: 8px;
+  }
+  
+  .mobile-vocab-card .mandarin {
+    font-size: 16px;
+    margin: 2px 0;
+  }
+  
+  .mobile-vocab-card .english {
+    font-size: 16px;
+    margin: 2px 0;
+    color: var(--muted);
+  }
+  
+  /* Review card specific styling */
+  .mobile-review-card .stats-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  
+  .mobile-review-card .accuracy {
+    background: rgba(255,255,255,0.05);
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+  }
+  
+  .mobile-review-card .due-info {
+    font-size: 12px;
+  }
+  
+  /* Multiple choice options - stack vertically */
+  #mc-options {
+    flex-direction: column !important;
+    gap: 12px;
+    width: 100%;
+  }
+  
+  #mc-options button {
+    width: 100%;
+    text-align: left;
+    padding: 16px;
+    font-size: 16px;
+    line-height: 1.4;
+  }
+  
+  /* Input fields */
+  input[type="text"], textarea, select {
+    font-size: 16px; /* Prevents zoom on iOS */
+    padding: 12px;
+    width: 100%;
+    box-sizing: border-box;
+    max-width: 100%;
+  }
+  
+  /* Specific fix for typing input */
+  #typing-input {
+    width: calc(100% - 32px) !important; /* Account for card padding + border */
+    max-width: calc(100% - 32px);
+    margin: 0 auto;
+    display: block;
+  }
+  
+  /* Modal adjustments */
+  .modal-content {
+    width: calc(100% - 24px);
+    max-height: 90vh;
+    padding: 16px;
+  }
+  
+  /* Panel minimum heights */
+  #panel-mc, #panel-flash, #panel-typing {
+    min-height: 300px;
+    padding-bottom: 80px;
+  }
+}
+
+/* Very small screens (phones in portrait) */
+@media (max-width: 480px) {
+  .container { padding: 12px; }
+  
+  /* Smaller typography */
+  .char { font-size: 36px; }
+  .label { font-size: 20px; }
+  .pron { font-size: 28px; }
+  
+  /* Stack tab buttons */
+  .tabbar { 
+    flex-direction: column; 
+  }
+  
+  .tabbar button {
+    flex: none;
+    width: 100%;
+  }
+  
+  /* Tables become more compact */
+  #panel-stats table, #rev-list table {
+    font-size: 14px;
+  }
+  
+  /* Review table columns */
+  #rev-list .rev-acc { width: 80px; }
+  #rev-list .rev-due { width: 80px; }
 }
 
 /* =========================
@@ -75,12 +284,99 @@ header{ display:flex; align-items:flex-start; justify-content:space-between; gap
 input[type="text"], textarea, select{
   background:#0b0f18; color:var(--ink); border:1px solid var(--line);
   border-radius:10px; padding:10px;
+  box-sizing: border-box; /* Include padding and border in width */
+  max-width: 100%; /* Prevent overflow */
 }
 body.light input[type="text"], body.light textarea, body.light select{ background:#fff; }
 
 /* =========================
-   COMPONENTS
+   INPUT FIELD CONSTRAINTS
    ========================= */
+
+/* Ensure all inputs stay within container bounds */
+#typing-input, 
+#vocab-search,
+#csv-text {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+}
+
+/* Specific typing input constraints */
+#typing-input {
+  width: calc(100% - 4px); /* Account for border */
+  max-width: calc(100% - 4px);
+  margin: 0;
+}
+
+/* Typing panel specific layout */
+#panel-typing {
+  overflow: hidden; /* Prevent any content from escaping */
+}
+
+#panel-typing .card {
+  overflow: hidden; /* Ensure card content stays within bounds */
+  padding: 16px; /* Ensure consistent padding */
+}
+
+#panel-typing input[type="text"] {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  margin: 12px 0;
+}
+
+/* Touch-friendly button sizing */
+.btn {
+  min-height: 44px; /* iOS recommended touch target */
+  min-width: 44px;
+  touch-action: manipulation; /* Prevents double-tap zoom */
+}
+
+/* Larger touch targets for play buttons */
+.btn.play {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Prevent text selection on interactive elements */
+.btn, .tabbar button, .modal-close {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Active states for better mobile feedback */
+.btn:active {
+  transform: scale(0.98);
+  opacity: 0.8;
+}
+
+.tabbar button:active {
+  transform: scale(0.98);
+}
+
+/* Improve input focus states on mobile */
+input[type="text"]:focus, 
+textarea:focus, 
+select:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Better scrolling on mobile */
+.modal-content {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Table horizontal scroll improvements */
+#panel-stats table, #rev-list table {
+  -webkit-overflow-scrolling: touch;
+}
 .card{
   background:var(--card); border:1px solid var(--line); border-radius:14px;
   padding:16px; box-shadow:0 10px 30px rgba(0,0,0,.25);
