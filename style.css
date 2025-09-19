@@ -1,0 +1,196 @@
+/* Extracted from inline <style> in index.html */
+/* =========================
+   THEME TOKENS
+   ========================= */
+:root{
+  --bg:#0f1115; --ink:#e5e7eb; --muted:#94a3b8;
+  --card:#161a22; --line:#263042;
+
+  /* Hakka tone colors */
+  --tone1:#ef4444; --tone2:#3b82f6; --tone3:#22c55e;
+  --tone4:#a855f7; --tone5:#fb923c; --tone6:#eab308;
+}
+
+/* Light scheme overrides (keeps the original vibe) */
+body.light{
+  --bg:#fafafa; --ink:#0f1115; --muted:#475569;
+  --card:#ffffff; --line:#cbd5e1;
+}
+
+/* =========================
+   BASE LAYOUT & TYPE
+   ========================= */
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+}
+.container{ max-width:1080px; margin:0 auto; padding:24px; }
+header{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; }
+h1{ margin:0; font-size:36px; font-weight:800; letter-spacing:.4px; }
+.subtitle{ color:var(--muted); }
+
+/* Masthead stack (title + slim kicker) */
+.masthead { display:flex; flex-direction:column; gap:6px; }
+
+/* Make the title a bit airier without shrinking your brand feel */
+h1 { margin:0; font-size:36px; font-weight:800; letter-spacing:.4px; line-height:1.1; }
+
+/* Kicker: subtle, compact, with auto separators */
+.kicker{
+  color:var(--muted);
+  font-size:14px;
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;     /* wraps cleanly if narrow */
+  align-items:center;
+}
+.kicker span{
+  position:relative;
+  padding-left:10px;  /* room for the dot */
+}
+.kicker span:first-child{ padding-left:0; }
+.kicker span:not(:first-child)::before{
+  content:"•";
+  position:absolute;
+  left:0;
+  opacity:.55;
+}
+
+/* Tighten the header row spacing a hair so the right group doesn’t drop */
+header{ display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:14px; }
+
+/* Responsive: remove title/kicker on mobile */
+@media (max-width:520px){ .kicker{ display:none; } 
+
+}
+
+/* =========================
+   UTILITIES
+   ========================= */
+.row{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.small{ font-size:14px; color:var(--muted); }
+.mono{ font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:12px; }
+
+/* Inputs */
+input[type="text"], textarea, select{
+  background:#0b0f18; color:var(--ink); border:1px solid var(--line);
+  border-radius:10px; padding:10px;
+}
+body.light input[type="text"], body.light textarea, body.light select{ background:#fff; }
+
+/* =========================
+   COMPONENTS
+   ========================= */
+.card{
+  background:var(--card); border:1px solid var(--line); border-radius:14px;
+  padding:16px; box-shadow:0 10px 30px rgba(0,0,0,.25);
+}
+.pill{
+  padding:6px 10px; border-radius:999px; background:#0b0f18;
+  border:1px solid var(--line); color:var(--muted);
+}
+body.light .pill{ background:#eef2f7; }
+
+.btn{
+  background:#141a27; border:1px solid var(--line); color:var(--ink);
+  border-radius:12px; padding:10px 12px; cursor:pointer;
+}
+body.light .btn{ background:#f8fafc; }
+.btn.good{ border-color:#16a34a; }
+.btn.warn{ border-color:#f59e0b; }
+.btn.bad { border-color:#ef4444; }
+
+.tabbar{ display:flex; gap:8px; margin-bottom:10px; flex-wrap:wrap; }
+.tabbar button{
+  background:#141a27; color:var(--ink); border:1px solid var(--line);
+  border-radius:10px; padding:10px 12px; cursor:pointer;
+}
+.tabbar button[aria-selected="true"]{ background:#1a2340; }
+body.light .tabbar button{ background:#f3f4f6; }
+body.light .tabbar button[aria-selected="true"]{ background:#dbeafe; }
+
+.tabpanel{ display:none; }
+.tabpanel[aria-hidden="false"]{ display:block; }
+
+/* =========================
+   TYPOGRAPHY (Card faces)
+   ========================= */
+.big{ font-size:40px; text-align:center; line-height:1.2; }
+.char{ font-size:56px; font-weight:800; line-height:1.05; margin-bottom:6px; }
+.label{ font-size:32px; font-weight:800; margin:10px 0 2px; }
+.pron{ font-size:40px; margin:6px 0 8px; }
+
+/* =========================
+   PANEL LAYOUT HELPERS
+   (Bottom-centered Next buttons)
+   ========================= */
+#panel-mc, #panel-flash, #panel-typing{
+  position:relative; min-height:360px; padding-bottom:72px;
+}
+#mc-next, #flash-next, #typing-next{
+  position:absolute; left:50%; transform:translateX(-50%); bottom:12px;
+}
+
+/* =========================
+   TABLES (Review & Stats/Vocab)
+   ========================= */
+#panel-stats table, #rev-list table{
+  width:100%; border-collapse:collapse;
+  /* Note: font size differs by section—override below */
+}
+#panel-stats table{ font-size:24px; }
+#rev-list table   { font-size:24px; }
+
+#panel-stats thead th, #rev-list thead th{
+  text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); font-weight:700;
+}
+#panel-stats tbody td, #rev-list tbody td{
+  padding:8px 10px; border-bottom:1px solid var(--line); vertical-align:top;
+}
+#panel-stats tbody tr:last-child td, #rev-list tbody tr:last-child td{ border-bottom:none; }
+
+/* Review/Vocab specific cells */
+#rev-list .rev-pron .play{ margin-left:8px; }
+#rev-list .rev-acc{ width:120px; text-align:right; white-space:nowrap; }
+#rev-list .rev-due{ width:120px; text-align:right; white-space:nowrap; color:var(--muted); }
+
+/* =========================
+   FEEDBACK TAG (MC/Typing)
+   ========================= */
+.result-tag{
+  display:inline-block; padding:4px 10px; border-radius:999px;
+  font-size:24px; font-weight:600; margin-bottom:10px; border:1px solid var(--line);
+}
+.result-tag.correct  { color:#16a34a; border-color:#16a34a22; background:rgba(22,163,74,.08); }
+.result-tag.incorrect{ color:#ef4444; border-color:#ef444422; background:rgba(239,68,68,.08); }
+
+/* =========================
+   HELP MODAL (all tabs)
+   ========================= */
+.modal[aria-hidden="true"] { display:none; }
+.modal[aria-hidden="false"] { display:block; }
+
+.modal {
+  position: fixed; inset: 0; z-index: 1000;
+}
+.modal-backdrop {
+  position:absolute; inset:0; background:rgba(0,0,0,.45);
+  backdrop-filter: blur(2px);
+}
+.modal-content {
+  position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+  width:min(880px, calc(100% - 32px));
+  max-height:80vh; overflow:auto;
+  background:var(--card); color:var(--ink);
+  border:1px solid var(--line); border-radius:14px; padding:16px 18px 18px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.35);
+}
+.modal-close {
+  position:absolute; top:8px; right:10px;
+  background:#141a27; color:var(--ink); border:1px solid var(--line);
+  border-radius:10px; width:36px; height:36px; cursor:pointer;
+  line-height:1; font-size:20px;
+}
+body.light .modal-close { background:#f8fafc; }
+.modal h3 { margin:12px 0 6px; }
+.modal ul { margin:6px 0 12px 18px; }
