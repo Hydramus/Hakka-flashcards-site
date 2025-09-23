@@ -1,0 +1,10 @@
+# Hakka Flashcards Image Generator Dependencies
+# 
+# Install with: pip install -r requirements.txt or use the setup.sh script
+
+# Core dependencies
+pillow>=10.0.0       # PIL - Python Imaging Library for image processing
+requests>=2.28.0     # HTTP library for API calls to Stable Diffusion
+
+# Optional but recommended for better performance
+numpy>=1.21.0        # Often used by Pillow for faster image operations
