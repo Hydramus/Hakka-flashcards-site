@@ -70,7 +70,7 @@
         </div>
         <div id="typing-question" class="big"></div>
         <div class="row" style="margin-top:12px;justify-content:center">
-          <input id="typing-input" type="text" placeholder="Type the English and press Enter" style="min-width:340px" />
+          <input id="typing-input" type="text" placeholder="Type the English and press Enter" style="width:100%;box-sizing:border-box;" />
         </div>
         <div id="typing-feedback" class="small" style="margin-top:6px;text-align:center"></div>
         <button id="typing-next" class="btn" style="display:none;margin-top:10px">Next</button>
@@ -84,9 +84,9 @@
             <div class="pill">Due Today: <span id="rev-due-count">0</span></div>
             <label class="small" style="margin-left:8px">Show:</label>
             <select id="rev-filter">
-              <option value="learned" selected>Learned</option>
+              <option value="due" selected>Due Today</option>
+              <option value="learned">Learned</option>
               <option value="mistakes">Mistakes</option>
-              <option value="due">Due Today</option>
             </select>
         </div>
         <div id="rev-list" class="card" style="padding:12px"></div>
@@ -151,8 +151,9 @@
 
         <h3>Flashcards</h3>
         <ul class="small">
-          <li>Press <strong>Show</strong> to reveal the back. Audio auto-plays; use ▶ to replay.</li>
-          <li>Rate with <strong>Again / Hard / Good / Easy</strong> to schedule with SRS (like Anki).</li>
+          <li>Press <strong>Show</strong> (or <kbd>Space</kbd> / <kbd>Enter</kbd>) to reveal the back. Audio auto-plays; use ▶ to replay.</li>
+          <li>Rate with <strong>Again / Hard / Good / Easy</strong> — or use keyboard shortcuts <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd> — to schedule with SRS (like Anki).</li>
+          <li>Press <strong>Skip</strong> to postpone a card without rating it.</li>
           <li>Tone colors: ① ˊ red, ②   blue, ③   green, ④  ˋ  purple, ⑤   orange, ⑥ ˋ yellow;</li>
           <li>The pinyim shows diacritics</li>
         </ul>

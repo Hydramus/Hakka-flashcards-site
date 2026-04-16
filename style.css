@@ -490,3 +490,20 @@ body.light .tabbar button[aria-selected="true"]{ background:#dbeafe; }
 body.light .modal-close { background:#f8fafc; }
 .modal h3 { margin:12px 0 6px; }
 .modal ul { margin:6px 0 12px 18px; }
+
+/* =========================
+   VOCAB IMAGES (flashcards)
+   ========================= */
+.vocab-img {
+  display: block;
+  max-width: 120px;
+  max-height: 120px;
+  margin: 8px auto;
+  border-radius: 8px;
+  object-fit: contain;
+  background: rgba(255,255,255,.06);
+  border: 1px solid var(--line);
+}
+body.light .vocab-img {
+  background: rgba(0,0,0,.03);
+}

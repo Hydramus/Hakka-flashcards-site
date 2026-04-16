@@ -1,6 +1,25 @@
 // Core application script for Hakka flashcards.
 // Refactored for readability (no logic changes).
 
+// ===== Vocab Image Config =====
+// Set to '' for local dev, or a CDN/hosting URL for production
+const IMAGE_BASE_URL = '';
+let vocabImageManifest = {};
+
+async function loadVocabImageManifest() {
+  try {
+    const res = await fetch('src/data/vocab-image-manifest.json');
+    if (res.ok) vocabImageManifest = await res.json();
+  } catch { /* manifest not available — images will use placeholders */ }
+}
+
+function getVocabImageHTML(english) {
+  const entry = vocabImageManifest[english];
+  if (!entry || !entry.image) return '';
+  const src = IMAGE_BASE_URL ? `${IMAGE_BASE_URL}/${entry.image}` : `public/${entry.image}`;
+  return `<img class="vocab-img" src="${src}" alt="${english}" onerror="this.style.display='none'">`;
+}
+
 // ===== Mobile & Touch Enhancements =====
 
 // Prevent zoom on double-tap for iOS
@@ -43,18 +62,6 @@ function setupMobileKeyboard() {
 }
 
 // ===== Theme toggle =====
-(function(){
-  const btn=document.getElementById('theme-toggle');
-  const saved=localStorage.getItem('theme');
-  if(saved==='light') document.body.classList.add('light');
-  btn.textContent=document.body.classList.contains('light')? 'Dark Mode':'Light Mode';
-  btn.onclick=()=>{
-    document.body.classList.toggle('light');
-    const isLight=document.body.classList.contains('light');
-    localStorage.setItem('theme', isLight? 'light':'dark');
-    btn.textContent=isLight? 'Dark Mode':'Light Mode';
-  };
-})();
 (function(){
   const btn=document.getElementById('theme-toggle');
   const saved=localStorage.getItem('theme');
@@ -120,10 +127,49 @@ function updateCardStats(card, ok){
 }
 
 // ===== Storage =====
+// ===== Storage (OPFS primary, localStorage fallback) =====
+// OPFS survives "Clear browsing data" in Chrome/Edge/Firefox 111+.
+// localStorage is always written as a secondary backup.
 const STORE_KEY = 'srs_decks_v1';
-const loadAll = () => { try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch { return {}; } };
-const saveAll = d => localStorage.setItem(STORE_KEY, JSON.stringify(d));
-let decks = loadAll();
+const OPFS_FILENAME = 'srs_decks_v1.json';
+let _opfsAvailable = false;
+
+async function loadAllAsync() {
+  try {
+    if (typeof navigator?.storage?.getDirectory === 'function') {
+      const root = await navigator.storage.getDirectory();
+      _opfsAvailable = true;
+      const fh = await root.getFileHandle(OPFS_FILENAME, { create: false }).catch(() => null);
+      if (fh) {
+        const file = await fh.getFile();
+        const text = await file.text();
+        if (text) return JSON.parse(text);
+      }
+    }
+  } catch {}
+  // Fallback: read from localStorage
+  try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch { return {}; }
+}
+
+function saveAll(d) {
+  const json = JSON.stringify(d);
+  // Mirror to localStorage as backup
+  try { localStorage.setItem(STORE_KEY, json); } catch {}
+  // Persist to OPFS asynchronously when available
+  if (_opfsAvailable) {
+    (async () => {
+      try {
+        const root = await navigator.storage.getDirectory();
+        const fh = await root.getFileHandle(OPFS_FILENAME, { create: true });
+        const writable = await fh.createWritable();
+        await writable.write(json);
+        await writable.close();
+      } catch {}
+    })();
+  }
+}
+
+let decks = {};
 let currentDeck = null;
 let reviewQueue = [];
 let currentIndex = null;
@@ -167,7 +213,7 @@ function convertToneNumbersToDiacritics(pron){
 
 // ===== TTS =====
 const TTS_API_URL = "https://Chaak2.pythonanywhere.com/TTS/hakka";
-function playTTS(pron){ const url = `${TTS_API_URL}/${encodeURIComponent((pron||'').trim())}?voice=male&speed=0.5`; new Audio(url).play().catch(()=>{}); }
+function playTTS(pron){ const url = `${TTS_API_URL}/${encodeURIComponent((pron||'').trim())}?voice=male&speed=1`; new Audio(url).play().catch(()=>{}); }
 
 // ===== Render helpers =====
 function frontHTML(row){
@@ -178,10 +224,12 @@ function frontHTML(row){
 }
 function backHTML(row){
   const playBtn = `<button id="play-tts" class="btn" style="border-radius:999px;width:56px;height:56px;display:inline-flex;align-items:center;justify-content:center">▶</button>`;
+  const imgHTML = getVocabImageHTML(row.english);
   return `
     <div class="char">${colorizeCharacters(row.hakka_chars,row.pronunciation)}</div>
     <div class="label">Hakka Pronunciation:</div>
     <div class="pron">${convertToneNumbersToDiacritics(row.pronunciation)}</div>
+    ${imgHTML}
     <div style="font-size:24px;margin:6px 0"><strong>普通中文:</strong> ${row.mandarin||''}</div>
     <div style="font-size:24px;margin:6px 0"><strong>Eng:</strong> ${row.english||''}</div>
     <div style="text-align:center;margin-top:6px">${playBtn}</div>`;
@@ -616,12 +664,17 @@ function showFlash() {
   
   // Show the front content
   $('flash-front').innerHTML = row ? frontHTML(row) : (card.front || '');
-  
-  // Hide back content and rating buttons
+
+  // Hide back content and rating buttons; wire Skip for use after reveal
   $('flash-back').style.display = 'none';
   btnShow.style.display = 'inline-block';
   btnNext.style.display = 'none';
+  btnNext.textContent = 'Skip';
+  btnNext.onclick = skipFlash;
   rateIds.forEach(id => $(id).style.display = 'none');
+
+  // Update progress counter
+  $('queue-info').textContent = `Card ${currentIndex + 1} of ${reviewQueue.length} due`;
 }
 
 // Reveal the back of a flashcard with pronunciation
@@ -653,10 +706,10 @@ function revealFlash() {
     $('flash-front').textContent = card.back || '(no back)';
   }
   
-  // Hide show button, show rating buttons
+  // Hide show button, show rating buttons + Skip
   $('flash-back').style.display = 'none';
   btnShow.style.display = 'none';
-  btnNext.style.display = 'none';
+  btnNext.style.display = 'inline-block';
   rateIds.forEach(id => $(id).style.display = 'inline-block');
 }
 
@@ -677,11 +730,19 @@ function rateFlash(rating) {
   // Remove card from queue and update index
   reviewQueue.splice(currentIndex, 1);
   currentIndex = reviewQueue.length ? Math.min(currentIndex, reviewQueue.length - 1) : null;
-  
+
   // Save and refresh
   saveAll(decks);
   buildQueue();
   summarizeStats();
+  showFlash();
+}
+
+// Advance without rating — removes card from the session queue without changing its schedule
+function skipFlash() {
+  if (currentIndex == null) return;
+  reviewQueue.splice(currentIndex, 1);
+  currentIndex = reviewQueue.length ? Math.min(currentIndex, reviewQueue.length - 1) : null;
   showFlash();
 }
 
@@ -742,11 +803,14 @@ function nextMC() {
     return;
   }
   
+  // Show inbox-zero message when no due cards remain
+  const hasDue = reviewQueue.length > 0;
+
   // Select card (prioritize due cards, fall back to random)
-  const dueIdx = (reviewQueue.length ? (currentIndex ?? 0) : Math.floor(Math.random() * currentDeck.cards.length));
-  const cardIdx = reviewQueue.length ? reviewQueue[dueIdx] : dueIdx;
+  const dueIdx = (hasDue ? (currentIndex ?? 0) : Math.floor(Math.random() * currentDeck.cards.length));
+  const cardIdx = hasDue ? reviewQueue[dueIdx] : dueIdx;
   const correct = currentDeck.cards[cardIdx];
-  
+
   // Parse correct answer data
   let row;
   try {
@@ -754,19 +818,19 @@ function nextMC() {
   } catch {
     row = null;
   }
-  
+
   // Show question
   $('mc-question').innerHTML = row ? frontHTML(row) : correct.front;
-  
+
   // Create distractors (wrong answers)
   const pool = currentDeck.cards.filter(c => c !== correct);
   const distractors = shuffle(pool).slice(0, 3);
   const options = shuffle([correct, ...distractors]);
-  
+
   // Set up UI elements
   const box = $('mc-options');
   box.innerHTML = '';
-  $('mc-feedback').innerHTML = '';
+  $('mc-feedback').innerHTML = hasDue ? '' : '<span style="color:var(--muted)">All due cards reviewed — practising from the full deck.</span>';
   const btnNext = $('mc-next');
   btnNext.style.display = 'none';
   box.style.display = 'flex';
@@ -890,11 +954,14 @@ function nextTyping() {
     return;
   }
   
+  // Show inbox-zero message when no due cards remain
+  const hasDue = Array.isArray(reviewQueue) && reviewQueue.length > 0;
+
   // Select card (prioritize due cards, fall back to random)
-  const dueIdx = (Array.isArray(reviewQueue) && reviewQueue.length ? (currentIndex ?? 0) : Math.floor(Math.random() * currentDeck.cards.length));
-  const cardIdx = (Array.isArray(reviewQueue) && reviewQueue.length) ? reviewQueue[dueIdx] : dueIdx;
+  const dueIdx = (hasDue ? (currentIndex ?? 0) : Math.floor(Math.random() * currentDeck.cards.length));
+  const cardIdx = hasDue ? reviewQueue[dueIdx] : dueIdx;
   const card = currentDeck.cards[cardIdx];
-  
+
   // Parse card data
   let row;
   try {
@@ -902,12 +969,12 @@ function nextTyping() {
   } catch {
     row = null;
   }
-  
+
   // Show question
   qEl.innerHTML = row ? frontHTML(row) : (card.front || '');
-  
+
   // Reset UI
-  fb.innerHTML = '';
+  fb.innerHTML = hasDue ? '' : '<span style="color:var(--muted)">All due cards reviewed — practising from the full deck.</span>';
   nxt.style.display = 'none';
   inp.disabled = false;
   inp.value = '';
@@ -1095,25 +1162,28 @@ document.querySelectorAll('[role="tab"]').forEach(tab => {
   });
 });
 
-// Handle window resize and orientation changes
+// Handle window resize and orientation changes (debounced to avoid thrashing)
+let _resizeTimer;
 window.addEventListener('resize', () => {
-  // Re-render tables/cards when screen size changes
-  setTimeout(() => {
+  clearTimeout(_resizeTimer);
+  _resizeTimer = setTimeout(() => {
     const activePanel = document.querySelector('.tabpanel[aria-hidden="false"]');
-    if (activePanel) {
-      if (activePanel.id === 'panel-stats') {
-        renderVocabInStats();
-      } else if (activePanel.id === 'panel-review') {
-        renderReview();
-      }
-    }
-  }, 100); // Small delay to ensure resize is complete
+    if (!activePanel) return;
+    if (activePanel.id === 'panel-stats') renderVocabInStats();
+    else if (activePanel.id === 'panel-review') renderReview();
+  }, 150);
 });
 
 // ===== Bootstrap =====
 
 // Initialize the application
 (async function() {
+  // Load persisted progress (OPFS with localStorage fallback)
+  decks = await loadAllAsync();
+
+  // Load vocab image manifest — fire-and-forget, images degrade gracefully
+  loadVocabImageManifest();
+
   // Load seed data if no decks exist
   if (Object.keys(decks).length === 0) {
     const seed = await loadSeedFromCSV();
