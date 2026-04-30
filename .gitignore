@@ -4,7 +4,7 @@
 *~
 
 .vscode/
-
+.test/
 
 # OS junk
 .DS_Store
@@ -40,3 +40,7 @@ public/vocab-images/
 
 # Wiki lookup cache
 scripts/generate_vocab_images/.wiki_cache.json
+
+# Local artifacts from one-shot CSV conversion
+Hakka Dictionary/_backup_diacritic/
+scripts/conversion_report.txt

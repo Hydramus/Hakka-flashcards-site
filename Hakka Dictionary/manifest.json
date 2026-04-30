@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "generatedAt": "2026-04-30T00:07:32.622505+00:00",
+  "sets": [
+    {
+      "id": "core",
+      "displayName": "Core Vocabulary",
+      "file": "Hakka Vocabulary.csv",
+      "schema": "main",
+      "isDefault": true
+    },
+    {
+      "id": "idiom-2",
+      "displayName": "2 Character Idioms (兩字熟語)",
+      "file": "flashcards-兩字熟語.csv",
+      "schema": "idiom"
+    },
+    {
+      "id": "idiom-3",
+      "displayName": "3 Character Idioms (三字熟語)",
+      "file": "flashcards-三字熟語.csv",
+      "schema": "idiom"
+    },
+    {
+      "id": "idiom-4",
+      "displayName": "4 Character Idioms (四字熟語)",
+      "file": "flashcards-四字熟語.csv",
+      "schema": "idiom"
+    },
+    {
+      "id": "idiom-5",
+      "displayName": "5+ Character Phrases (五字以上)",
+      "file": "flashcards-五字以上.csv",
+      "schema": "idiom"
+    },
+    {
+      "id": "riddles",
+      "displayName": "Slang & Riddles (歇後語謎語)",
+      "file": "flashcards-歇後語謎語.csv",
+      "schema": "idiom"
+    }
+  ]
+}

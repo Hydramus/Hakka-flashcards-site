@@ -18,7 +18,7 @@ import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).parent.parent.parent
-DEFAULT_CSV = REPO_ROOT / "Hakka Vocabulary.csv"
+DEFAULT_CSV = REPO_ROOT / "Hakka Dictionary" / "Hakka Vocabulary.csv"
 DEFAULT_MANIFEST = REPO_ROOT / "src" / "data" / "vocab-image-manifest.json"
 
 

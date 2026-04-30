@@ -10,6 +10,19 @@ A web-based flashcard application for learning Hong Kong Fui Yong Hakka vocabula
 - **Typing**: Type answers in English, Mandarin, or Hakka pronunciation
 - **Review Mode**: Review learned words, mistakes, and cards due today
 
+### 📚 Sets
+The vocabulary corpus is split into themed sets, each backed by a CSV file in `Hakka Dictionary/`:
+
+- **Core Vocabulary** — `Hakka Vocabulary.csv`
+- **2 Character Idioms (兩字熟語)** — `flashcards-兩字熟語.csv`
+- **3 Character Idioms (三字熟語)** — `flashcards-三字熟語.csv`
+- **4 Character Idioms (四字熟語)** — `flashcards-四字熟語.csv`
+- **5+ Character Phrases (五字以上)** — `flashcards-五字以上.csv`
+- **Slang & Riddles (歇後語謎語)** — `flashcards-歇後語謎語.csv`
+- **All** — synthetic option that pools every set together
+
+A global picker above the tabs chooses the active set. Flashcards, Multiple Choice, Typing, and Reviewing all scope to it. Vocabulary search always covers every set. SRS progress is per-card and unified — words shared between sets share progress. Switching mid-card discards the in-flight card without rating it.
+
 ### 🎨 Visual Learning
 - **Tone Coloring**: Each Hakka tone (1-6) is color-coded for visual learning
   - Tone 1: Red
@@ -40,9 +53,8 @@ A web-based flashcard application for learning Hong Kong Fui Yong Hakka vocabula
 - **Progress**: Progress is all stored in your local browser cache so it will reset if you move to another computer or browser
 
 ### 📁 Data Management
-- **CSV Import**: Import vocabulary from CSV files
-- **Progress Export/Import**: Backup and restore your learning progress
-- **Local Storage**: All progress saved locally in your browser
+- **Backup**: Export and import your learning progress as JSON
+- **Local Storage**: All progress saved locally in your browser (OPFS with localStorage fallback) — survives "Clear browsing data" in modern browsers
 
 ## Usage
 
@@ -52,16 +64,10 @@ A web-based flashcard application for learning Hong Kong Fui Yong Hakka vocabula
    - Open `index.html` in any modern web browser
    - No installation or server setup required
 
-2. **Import Vocabulary**
-   - The app comes with a default Hakka vocabulary CSV file (`Hakka Vocabulary.csv`)
-   - To add custom vocabulary:
-     - Go to the "Import/Export" tab
-     - Use the CSV import feature with the required format:
-       ```csv
-       普通中文,客家汉字,Hakka Pronunciation,English Definition
-       太陽,日頭,ngit5 teu2,Sun
-       月亮,月光,ngiet6 gong1,Moon
-       ```
+2. **First-time setup**
+   - On your first visit you'll see a welcome modal asking which set to start with. Core Vocabulary is highlighted as the default.
+   - You can change the active set any time via the **Set** picker above the tabs.
+   - To add new sets, drop a CSV into `Hakka Dictionary/` and rerun the manifest script (see [Adding new sets](#adding-new-sets)).
 
 ### Study Modes
 
@@ -100,33 +106,59 @@ A web-based flashcard application for learning Hong Kong Fui Yong Hakka vocabula
 
 ### Statistics and Vocabulary Browser
 - Click the "Vocabulary" tab to:
-  - View overall statistics
-  - Search through all vocabulary
+  - View overall statistics for the active set (in the picker row)
+  - Search across **every** set — search results show set-membership badges per word
   - Track session and lifetime progress
   - Browse the complete word list
 
-### Import/Export Data
+### Backup
 
-#### Importing CSV Vocabulary
-1. Go to "Import/Export" tab
-2. Either:
-   - Paste CSV text directly into the text area, OR
-   - Use "Choose File" to select a CSV file
-3. Click "Import" to add the vocabulary
+The **Backup** tab provides JSON export/import for your local progress.
 
-#### Backup/Restore Progress
-1. **Export**: Click "Export Progress" to download your learning data
-2. **Import**: Use "Choose File" and "Import Progress" to restore from a backup
+1. **Export**: Click "Export Progress" to download a JSON file with your full SRS state.
+2. **Import**: Use "Choose File" and "Import Progress" to restore from a backup. Older v1 backups are auto-migrated to the v2 card-pool shape.
+
+> Manual CSV import was removed. Add new vocabulary by dropping CSV files into `Hakka Dictionary/` and rerunning the manifest script — see below.
+
+## Adding new sets
+
+1. Drop a new CSV into `Hakka Dictionary/` using either schema:
+   - **Main schema** (Mandarin word column): `普通中文,客家汉字,Hakka Pronunciation,English Definition`
+   - **Idiom schema** (longer Chinese explanation): `客家汉字,Hakka Pronunciation,Chinese definition,English Definition`
+2. If the file uses diacritic pronunciation (`á mĕ`), convert it to the tone-number form the runtime expects:
+   ```bash
+   .venv/Scripts/python.exe scripts/diacritic_to_tonenum.py
+   ```
+   The script is idempotent, backs originals up to `Hakka Dictionary/_backup_diacritic/`, and writes a `scripts/conversion_report.txt` with per-file counts and any anomalies for review.
+3. Regenerate the manifest the front end fetches:
+   ```bash
+   .venv/Scripts/python.exe scripts/build_manifest.py
+   ```
+   This rewrites `Hakka Dictionary/manifest.json`. Display names come (in priority order) from `Hakka Dictionary/manifest.overrides.json` if present, then a built-in map, then a prettify fallback.
+4. Refresh the page. The new set appears in the picker without code changes.
 
 ## File Structure
 
 ```
 Hakka-flashcards-site/
-├── index.html          # Main application interface
-├── app.js             # Core application logic and SRS algorithm  
-├── style.css          # Styling and themes
-├── Hakka Vocabulary.csv # Default vocabulary dataset
-└── README.md          # This documentation
+├── index.html                         # Main application interface
+├── app.js                             # Core application logic, SRS, set picker
+├── style.css                          # Styling and themes
+├── Hakka Dictionary/
+│   ├── manifest.json                  # Auto-generated set manifest
+│   ├── manifest.overrides.json        # Optional display-name overrides
+│   ├── Hakka Vocabulary.csv           # Core vocabulary (main schema)
+│   ├── flashcards-兩字熟語.csv         # 2-character idioms (idiom schema)
+│   ├── flashcards-三字熟語.csv         # 3-character idioms
+│   ├── flashcards-四字熟語.csv         # 4-character idioms
+│   ├── flashcards-五字以上.csv         # 5+ character phrases
+│   ├── flashcards-歇後語謎語.csv       # Slang & riddles
+│   └── _backup_diacritic/             # Pre-conversion backups (idiom CSVs)
+├── scripts/
+│   ├── build_manifest.py              # Regenerate manifest after CSV changes
+│   ├── diacritic_to_tonenum.py        # One-shot diacritic→tone-number converter
+│   └── conversion_report.txt          # Last conversion run summary
+└── README.md                          # This documentation
 ```
 
 ## Technical Details
@@ -137,9 +169,11 @@ Hakka-flashcards-site/
 - No server or internet connection required
 
 ### Data Storage
-- All progress is stored locally in your browser's localStorage
-- No data is sent to external servers
-- Export your progress regularly to avoid data loss
+- Progress is stored locally in your browser. Primary store is **OPFS** (Origin Private File System) — survives "Clear browsing data" in Chrome/Edge/Firefox 111+. localStorage is mirrored as a backup.
+- Storage key: `srs_cards_v2` (one entry per unique card, keyed by `hakka_chars + pronunciation`).
+- Older `srs_decks_v1` data auto-migrates on first load and is preserved as `srs_decks_v1_backup`.
+- No data is sent to external servers.
+- Export your progress regularly to avoid data loss.
 
 ### SRS Algorithm
 The spaced repetition system uses a modified Anki algorithm:
@@ -150,25 +184,30 @@ The spaced repetition system uses a modified Anki algorithm:
 
 ## CSV Format
 
-When importing vocabulary, use this exact header format:
+Two schemas are supported. The schema is auto-detected from the header by `scripts/build_manifest.py`.
 
-```csv
-普通中文,客家汉字,Hakka Pronunciation,English Definition
-```
-
-**Column Descriptions:**
-- `普通中文`: Standard Chinese/Mandarin characters
-- `客家汉字`: Hakka Chinese characters  
-- `Hakka Pronunciation`: Romanized pronunciation with tone numbers (1-6)
-- `English Definition`: English translation
-
-**Example:**
+### Main schema (Mandarin word)
 ```csv
 普通中文,客家汉字,Hakka Pronunciation,English Definition
 太陽,日頭,ngit5 teu2,Sun
 月亮,月光,ngiet6 gong1,Moon
-星星,星,sin1,Star
 ```
+
+### Idiom schema (Chinese explanation)
+```csv
+客家汉字,Hakka Pronunciation,Chinese definition,English Definition
+阿姆,a1 me3,,"Mother / exclamation 'Look!'"
+```
+
+**Column descriptions**
+- `普通中文` *(main only)*: Standard Chinese/Mandarin word
+- `客家汉字`: Hakka Chinese characters
+- `Hakka Pronunciation`: Romanized pronunciation with tone numbers (1–6). If a CSV uses diacritics (`á mĕ`), run `scripts/diacritic_to_tonenum.py` once to convert it before adding it to the manifest.
+- `Chinese definition` *(idiom only)*: Longer Chinese explanation rendered as `中文釋義:` on the back of the card
+- `English Definition`: English translation
+
+Cards are deduplicated across CSVs by the composite key `hakka_chars + pronunciation`. A word that appears in two CSVs becomes one card with two set memberships, sharing one SRS state.
+
 ## Contributing
 
 To contribute vocabulary or improvements:

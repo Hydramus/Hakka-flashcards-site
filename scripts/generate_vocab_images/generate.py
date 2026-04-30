@@ -30,7 +30,7 @@ from manifest import Manifest
 from providers.comfyui import ComfyUIProvider
 
 # Paths relative to repo root
-CSV_PATH = REPO_ROOT / "Hakka Vocabulary.csv"
+CSV_PATH = REPO_ROOT / "Hakka Dictionary" / "Hakka Vocabulary.csv"
 IMAGES_DIR = REPO_ROOT / "public" / "vocab-images"
 MANIFEST_PATH = REPO_ROOT / "src" / "data" / "vocab-image-manifest.json"
 OVERRIDES_PATH = SCRIPT_DIR / "overrides.json"

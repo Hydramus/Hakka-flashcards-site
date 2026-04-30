@@ -52,7 +52,7 @@ python generate.py [OPTIONS]
 | `--comfyui-url URL` | `http://127.0.0.1:8188` | ComfyUI server address |
 | `--batch-size N` | `10` | Save a manifest checkpoint every N images |
 | `--seed N` | `42` | Base seed for reproducible generation (each image gets `seed + index`) |
-| `--csv PATH` | `../../Hakka Vocabulary.csv` | Path to the vocabulary CSV |
+| `--csv PATH` | `../../Hakka Dictionary/Hakka Vocabulary.csv` | Path to the vocabulary CSV |
 | `--lowram` | off | Sleep between each generation to reduce system load and keep the workstation responsive |
 | `--lowram-delay N` | `3.0` | Seconds to sleep between generations when `--lowram` is active |
 
@@ -60,7 +60,7 @@ python generate.py [OPTIONS]
 
 ## How It Works
 
-1. **Load CSV** -- Reads `Hakka Vocabulary.csv` and extracts the `English Definition` column.
+1. **Load CSV** -- Reads `Hakka Dictionary/Hakka Vocabulary.csv` and extracts the `English Definition` column.
 2. **Deduplicate** -- Keeps only the first occurrence of each English definition (126 duplicates skipped from ~2370 rows).
 3. **Slugify** -- Converts each definition to a filesystem-safe slug (e.g., `Rain (v.)` becomes `rain-v`).
 4. **Check existence** -- If `public/vocab-images/<slug>.png` already exists, skip.
