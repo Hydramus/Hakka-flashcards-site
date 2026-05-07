@@ -61,8 +61,8 @@ A global picker above the tabs chooses the active set. Flashcards, Multiple Choi
 ### Getting Started
 
 1. **Open the Application**
-   - Open `index.html` in any modern web browser
-   - No installation or server setup required
+   - Serve the project from a local HTTP server (required — see [Local Development](#local-development))
+   - Opening `index.html` directly via `file://` will not work because the CSV and manifest files are loaded via `fetch()`
 
 2. **First-time setup**
    - On your first visit you'll see a welcome modal asking which set to start with. Core Vocabulary is highlighted as the default.
@@ -119,6 +119,35 @@ The **Backup** tab provides JSON export/import for your local progress.
 2. **Import**: Use "Choose File" and "Import Progress" to restore from a backup. Older v1 backups are auto-migrated to the v2 card-pool shape.
 
 > Manual CSV import was removed. Add new vocabulary by dropping CSV files into `Hakka Dictionary/` and rerunning the manifest script — see below.
+
+## Local Development
+
+The app loads CSV and JSON files via `fetch()`, so it must be served over HTTP — opening `index.html` directly with `file://` will silently fail to load any vocabulary.
+
+### Quickest option — Python (already in the repo's `.venv`)
+
+```powershell
+python -m http.server 8080
+```
+
+Then open [http://localhost:8080](http://localhost:8080) in your browser.
+
+### Alternative — Node / npx (no install needed)
+
+```powershell
+npx serve .
+```
+
+### What to check after making changes
+
+| Area | How to verify |
+|------|---------------|
+| Vocabulary loads | Open the Vocabulary tab — cards should appear in the list |
+| CSV changes | Refresh the page; new/changed cards appear immediately |
+| SRS state | Rate a card, then check DevTools → Application → Local Storage → `srs_cards_v2` |
+| Performance (debounce) | Rate cards rapidly — Local Storage should only update ~500ms after the last tap |
+| Animations | Click "Show Answer" on a flashcard — back content should fade + slide in |
+| Mobile layout | DevTools device toolbar at 375px width — tabs stack, tables hide, card layout shows |
 
 ## Adding new sets
 

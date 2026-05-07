@@ -390,6 +390,7 @@ body.light .pill{ background:#eef2f7; }
 .btn{
   background:#141a27; border:1px solid var(--line); color:var(--ink);
   border-radius:12px; padding:10px 12px; cursor:pointer;
+  transition: background-color 150ms ease, border-color 150ms ease, transform 120ms ease, opacity 120ms ease;
 }
 body.light .btn{ background:#f8fafc; }
 .btn.good{ border-color:#16a34a; }
@@ -400,6 +401,7 @@ body.light .btn{ background:#f8fafc; }
 .tabbar button{
   background:#141a27; color:var(--ink); border:1px solid var(--line);
   border-radius:10px; padding:10px 12px; cursor:pointer;
+  transition: background-color 150ms ease, border-color 150ms ease, transform 120ms ease;
 }
 .tabbar button[aria-selected="true"]{ background:#1a2340; }
 body.light .tabbar button{ background:#f3f4f6; }
@@ -484,7 +486,7 @@ body.light .tabbar button[aria-selected="true"]{ background:#dbeafe; }
 .modal-close {
   position:absolute; top:8px; right:10px;
   background:#141a27; color:var(--ink); border:1px solid var(--line);
-  border-radius:10px; width:36px; height:36px; cursor:pointer;
+  border-radius:10px; width:44px; height:44px; cursor:pointer;
   line-height:1; font-size:20px;
 }
 body.light .modal-close { background:#f8fafc; }
@@ -567,4 +569,40 @@ body.light .welcome-grid .btn.active{ background:#dbeafe; }
 }
 body.light .vocab-img {
   background: rgba(0,0,0,.03);
+}
+
+/* =========================
+   CARD REVEAL ANIMATION
+   ========================= */
+@keyframes cardReveal {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.card-revealed { animation: cardReveal 180ms ease-out; }
+
+/* =========================
+   KEYBOARD SHORTCUT BADGES
+   ========================= */
+kbd {
+  display: inline-block;
+  padding: 1px 5px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  font-size: 11px;
+  font-family: ui-monospace, monospace;
+  color: var(--muted);
+  margin-left: 4px;
+  vertical-align: middle;
+  background: rgba(255,255,255,0.05);
+  line-height: 1.6;
+}
+body.light kbd { background: rgba(0,0,0,0.04); }
+@media (max-width: 768px) { kbd { display: none; } }
+
+/* =========================
+   FOCUS-VISIBLE RINGS
+   ========================= */
+.btn:focus-visible, .tabbar button:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
 }

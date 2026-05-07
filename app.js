@@ -242,6 +242,13 @@ function migrateV1ToV2(oldDecks) {
 
 // ===== Streak & vocab counters =====
 const $ = id => document.getElementById(id);
+const _dc = {};
+const $c = id => _dc[id] ??= document.getElementById(id);
+let _persistTimer;
+function debouncedPersist() {
+  clearTimeout(_persistTimer);
+  _persistTimer = setTimeout(persistState, 500);
+}
 function getLife() { return parseInt(localStorage.getItem('streak_life') || '0', 10) || 0; }
 function setLife(n) { localStorage.setItem('streak_life', String(n)); const el = $('streak-life'); if (el) el.textContent = 'Lifetime: ' + n; }
 function getSession() { const el = $('streak-session'); const m = (el && el.textContent || '').match(/(\d+)/); return m ? parseInt(m[1], 10) : 0; }
@@ -258,13 +265,18 @@ const TONE_COLORS = { '1': 'var(--tone1)', '2': 'var(--tone2)', '3': 'var(--tone
 const TONE_DIACRITICS = { '1': '́', '2': '̄', '3': '̌', '4': '̀', '5': '̌', '6': '̀' };
 const toneSpan = (t, n) => `<span style="color:${TONE_COLORS[n] || '#fff'}">${t}</span>`;
 const extractTones = pron => (pron.match(/[1-6]/g) || []);
+const _toneCache = new Map();
 function colorizeCharacters(chars, pron) {
+  const key = chars + '|' + pron;
+  if (_toneCache.has(key)) return _toneCache.get(key);
   const tones = extractTones(pron);
   const out = [];
   for (let i = 0; i < chars.length; i++) {
     out.push(toneSpan(chars[i], tones[i % tones.length] || '2'));
   }
-  return out.join('');
+  const result = out.join('');
+  _toneCache.set(key, result);
+  return result;
 }
 function convertToneNumbersToDiacritics(pron) {
   return pron.replace(/([A-Za-z]+)([1-6])/g, (m, syl, t) => {
@@ -517,7 +529,7 @@ function buildQueue() {
   if (!entries.length) {
     reviewQueue = [];
     currentIndex = null;
-    if ($('queue-info')) $('queue-info').textContent = '0 due';
+    if ($c('queue-info')) $c('queue-info').textContent = '0 due';
     showEmptyFlashState(true);
     summarizeStats();
     return;
@@ -531,22 +543,21 @@ function buildQueue() {
   }
   reviewQueue = shuffle(queue);
   currentIndex = reviewQueue.length ? 0 : null;
-  if ($('queue-info')) $('queue-info').textContent = `${reviewQueue.length} due`;
+  if ($c('queue-info')) $c('queue-info').textContent = `${reviewQueue.length} due`;
   showEmptyFlashState(reviewQueue.length === 0);
   summarizeStats();
 }
 
 function showEmptyFlashState(empty) {
-  const emptyEl = $('flash-empty');
+  const emptyEl = $c('flash-empty');
   if (!emptyEl) return;
   emptyEl.hidden = !empty;
-  // hide the rating buttons and show button when empty
   if (empty) {
     ['btn-show', 'btn-again', 'btn-hard', 'btn-good', 'btn-easy', 'flash-next'].forEach(id => {
-      const el = $(id); if (el) el.style.display = 'none';
+      const el = $c(id); if (el) el.style.display = 'none';
     });
-    $('flash-front').textContent = '';
-    $('flash-back').style.display = 'none';
+    $c('flash-front').textContent = '';
+    $c('flash-back').style.display = 'none';
   }
 }
 
@@ -736,7 +747,11 @@ function renderVocabInStats() {
   }
 }
 
-document.getElementById('vocab-search')?.addEventListener('input', renderVocabInStats);
+let _vocabSearchTimer;
+document.getElementById('vocab-search')?.addEventListener('input', () => {
+  clearTimeout(_vocabSearchTimer);
+  _vocabSearchTimer = setTimeout(renderVocabInStats, 200);
+});
 document.getElementById('vocab-list')?.addEventListener('click', (e) => {
   const btn = e.target.closest('button.play');
   if (!btn) return;
@@ -759,8 +774,8 @@ function currentFlashCard() {
 }
 
 function showFlash() {
-  const btnShow = $('btn-show');
-  const btnNext = $('flash-next');
+  const btnShow = $c('btn-show');
+  const btnNext = $c('flash-next');
   const rateIds = ['btn-again', 'btn-hard', 'btn-good', 'btn-easy'];
   const card = currentFlashCard();
   if (!card) {
@@ -768,30 +783,34 @@ function showFlash() {
     return;
   }
   showEmptyFlashState(false);
-  $('flash-front').innerHTML = frontHTML(card);
-  $('flash-back').style.display = 'none';
+  const front = $c('flash-front');
+  front.classList.remove('card-revealed');
+  front.innerHTML = frontHTML(card);
+  $c('flash-back').style.display = 'none';
   btnShow.style.display = 'inline-block';
   btnNext.style.display = 'none';
   btnNext.textContent = 'Skip';
   btnNext.onclick = skipFlash;
-  rateIds.forEach(id => $(id).style.display = 'none');
-  $('queue-info').textContent = `Card ${currentIndex + 1} of ${reviewQueue.length} due`;
+  rateIds.forEach(id => $c(id).style.display = 'none');
+  $c('queue-info').textContent = `Card ${currentIndex + 1} of ${reviewQueue.length} due`;
 }
 
 function revealFlash() {
   const card = currentFlashCard();
   if (!card) return;
-  const btnShow = $('btn-show');
-  const btnNext = $('flash-next');
+  const btnShow = $c('btn-show');
+  const btnNext = $c('flash-next');
   const rateIds = ['btn-again', 'btn-hard', 'btn-good', 'btn-easy'];
-  $('flash-front').innerHTML = backHTML(card);
+  const front = $c('flash-front');
+  front.innerHTML = backHTML(card);
+  front.classList.add('card-revealed');
   const pb = $('play-tts');
   if (pb) pb.onclick = () => playTTS(card.pronunciation);
   playTTS(card.pronunciation);
-  $('flash-back').style.display = 'none';
+  $c('flash-back').style.display = 'none';
   btnShow.style.display = 'none';
   btnNext.style.display = 'inline-block';
-  rateIds.forEach(id => $(id).style.display = 'inline-block');
+  rateIds.forEach(id => $c(id).style.display = 'inline-block');
 }
 
 function rateFlash(rating) {
@@ -802,7 +821,7 @@ function rateFlash(rating) {
   if (rating !== 'Again') bumpStreak();
   reviewQueue.splice(currentIndex, 1);
   currentIndex = reviewQueue.length ? Math.min(currentIndex, reviewQueue.length - 1) : null;
-  persistState();
+  debouncedPersist();
   buildQueue();
   showFlash();
 }
@@ -890,7 +909,7 @@ function nextMC() {
       updateCardStats(correct, ok);
       if (ok) bumpStreak();
       buildQueue();
-      persistState();
+      debouncedPersist();
       btnNext.style.display = 'inline-block';
     };
     box.appendChild(b);
@@ -995,7 +1014,7 @@ function nextTyping() {
     schedule(card, ok ? 'Good' : 'Again');
     if (ok) bumpStreak();
     buildQueue();
-    persistState();
+    debouncedPersist();
   };
 
   nxt.onclick = () => {
