@@ -18,7 +18,7 @@ function getVocabImageHTML(english) {
   const entry = vocabImageManifest[english];
   if (!entry || !entry.image) return '';
   const src = IMAGE_BASE_URL ? `${IMAGE_BASE_URL}/${entry.image}` : `public/${entry.image}`;
-  return `<img class="vocab-img" src="${src}" alt="${english}" onerror="this.style.display='none'">`;
+  return `<img class="vocab-img" src="${src}" alt="${escapeHTML(english)}" onerror="this.style.display='none'">`;
 }
 
 // ===== Mobile & Touch Enhancements =====
@@ -290,12 +290,50 @@ function convertToneNumbersToDiacritics(pron) {
 
 // ===== TTS =====
 const TTS_API_URL = "https://Chaak2.pythonanywhere.com/TTS/hakka";
-function playTTS(pron) { const url = `${TTS_API_URL}/${encodeURIComponent((pron || '').trim())}?voice=male&speed=1`; new Audio(url).play().catch(() => {}); }
+const _ttsCache = new Map();
+
+function _ttsUrl(pron) {
+  return `${TTS_API_URL}/${encodeURIComponent((pron || '').trim())}?voice=male&speed=1`;
+}
+
+function prefetchTTS(pron) {
+  if (!pron) return;
+  const url = _ttsUrl(pron);
+  if (_ttsCache.has(url)) return;
+  fetch(url)
+    .then(r => r.blob())
+    .then(blob => _ttsCache.set(url, URL.createObjectURL(blob)))
+    .catch(() => {});
+}
+
+function prefetchCardAndNext(index) {
+  [index, index + 1].forEach(i => {
+    const key = reviewQueue[i];
+    if (key == null) return;
+    const card = cardPool.cards.get(key);
+    if (card) prefetchTTS(card.pronunciation);
+  });
+}
+
+function playTTS(pron) {
+  const url = _ttsUrl(pron);
+  if (_ttsCache.has(url)) {
+    new Audio(_ttsCache.get(url)).play().catch(() => {});
+  } else {
+    fetch(url)
+      .then(r => r.blob())
+      .then(blob => {
+        _ttsCache.set(url, URL.createObjectURL(blob));
+        new Audio(_ttsCache.get(url)).play().catch(() => {});
+      })
+      .catch(() => {});
+  }
+}
 
 // ===== Render helpers =====
 function chineseLineHTML(card) {
-  if (card.mandarin) return `<div style="font-size:24px;margin:6px 0"><strong>普通中文:</strong> ${card.mandarin}</div>`;
-  if (card.chinese_def) return `<div style="font-size:18px;margin:6px 0;line-height:1.4"><strong>中文釋義:</strong> ${card.chinese_def}</div>`;
+  if (card.mandarin) return `<div style="font-size:24px;margin:6px 0"><strong>普通中文:</strong> ${escapeHTML(card.mandarin)}</div>`;
+  if (card.chinese_def) return `<div style="font-size:18px;margin:6px 0;line-height:1.4"><strong>中文釋義:</strong> ${escapeHTML(card.chinese_def)}</div>`;
   return '';
 }
 function frontHTML(card) {
@@ -305,7 +343,6 @@ function frontHTML(card) {
     <div class="pron">${convertToneNumbersToDiacritics(card.pronunciation)}</div>`;
 }
 function backHTML(card) {
-  const playBtn = `<button id="play-tts" class="btn" style="border-radius:999px;width:56px;height:56px;display:inline-flex;align-items:center;justify-content:center">▶</button>`;
   const imgHTML = getVocabImageHTML(card.english);
   return `
     <div class="char">${colorizeCharacters(card.hakka_chars, card.pronunciation)}</div>
@@ -313,8 +350,11 @@ function backHTML(card) {
     <div class="pron">${convertToneNumbersToDiacritics(card.pronunciation)}</div>
     ${imgHTML}
     ${chineseLineHTML(card)}
-    <div style="font-size:24px;margin:6px 0"><strong>Eng:</strong> ${card.english || ''}</div>
-    <div style="text-align:center;margin-top:6px">${playBtn}</div>`;
+    <div style="font-size:24px;margin:6px 0"><strong>Eng:</strong> ${escapeHTML(card.english || '')}</div>
+    <div style="text-align:center;margin-top:6px">
+      <button id="play-tts" class="btn play-tts-btn" title="Play audio (Space)">▶</button>
+      <div class="play-tts-hint"><kbd>Space</kbd> to replay</div>
+    </div>`;
 }
 
 // ===== CSV parsing =====
@@ -789,10 +829,11 @@ function showFlash() {
   $c('flash-back').style.display = 'none';
   btnShow.style.display = 'inline-block';
   btnNext.style.display = 'none';
-  btnNext.textContent = 'Skip';
+  btnNext.innerHTML = 'Skip <kbd>S</kbd>';
   btnNext.onclick = skipFlash;
   rateIds.forEach(id => $c(id).style.display = 'none');
   $c('queue-info').textContent = `Card ${currentIndex + 1} of ${reviewQueue.length} due`;
+  prefetchCardAndNext(currentIndex);
 }
 
 function revealFlash() {
@@ -844,8 +885,10 @@ document.addEventListener('keydown', (e) => {
   if (!panelVisible || currentIndex == null) return;
   if (e.key === ' ' || e.key === 'Enter') {
     if ($('btn-show').style.display !== 'none') { e.preventDefault(); revealFlash(); }
+    else { e.preventDefault(); const card = currentFlashCard(); if (card) playTTS(card.pronunciation); }
     return;
   }
+  if (e.key === 's' || e.key === 'S') { e.preventDefault(); skipFlash(); return; }
   const ratedVisible = $('btn-again').style.display !== 'none';
   if (!ratedVisible) return;
   if (e.key === '1') { e.preventDefault(); rateFlash('Again'); }
@@ -873,6 +916,7 @@ function nextMC() {
     correct = cards[Math.floor(Math.random() * cards.length)];
   }
   $('mc-question').innerHTML = frontHTML(correct);
+  prefetchTTS(correct.pronunciation);
   const pool = cards.filter(c => c !== correct);
   const distractors = shuffle(pool).slice(0, 3);
   const options = shuffle([correct, ...distractors]);
@@ -986,6 +1030,7 @@ function nextTyping() {
   }
 
   qEl.innerHTML = frontHTML(card);
+  prefetchTTS(card.pronunciation);
   fb.innerHTML = hasDue ? '' : '<span style="color:var(--muted)">All due cards reviewed — practising from the full set.</span>';
   nxt.style.display = 'none';
   inp.disabled = false;
